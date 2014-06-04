@@ -303,7 +303,7 @@ config NOMMU_INITIAL_TRIM_EXCESS
 	  See Documentation/nommu-mmap.txt for more information.
 
 config ZSMALLOC
-	bool "Memory allocator for compressed pages"
+	tristate "Memory allocator for compressed pages"
 	depends on MMU
 	default n
 	help
