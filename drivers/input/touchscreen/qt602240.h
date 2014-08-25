@@ -51,11 +51,19 @@
 #define KEYLED_DATA_LOW                   4
 #endif
 
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)||defined(CONFIG_TARGET_LOCALE_LTN_N)
+#define IRQ_TOUCH_INT       IRQ_EINT_GROUP(14, 2)	// group 14 : G0
+#else
 #define IRQ_TOUCH_INT       IRQ_EINT_GROUP(18, 5)	// group 18 : J0
+#endif
 
 #ifndef __GPIO_P1_H_
 #define GPIO_TOUCH_EN       S5PV210_GPH2(1)
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)||defined(CONFIG_TARGET_LOCALE_LTN_N)
+#define GPIO_TOUCH_INT     S5PV210_GPG0(2)
+#else
 #define GPIO_TOUCH_INT     S5PV210_GPJ0(5)
+#endif
 #define GPIO_INPUT		0
 #define GPIO_OUTPUT		1
 #endif

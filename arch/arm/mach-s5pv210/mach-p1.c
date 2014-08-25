@@ -79,6 +79,9 @@
 #ifdef CONFIG_VIDEO_S5K5CCGX
 #include <media/s5k5ccgx_platform.h>
 #endif
+#ifdef CONFIG_VIDEO_NM6XX 
+#include <media/nm6xx_platform.h>
+#endif
 
 #include <plat/regs-serial.h>
 #include <plat/s5pv210.h>
@@ -1540,6 +1543,23 @@ static struct platform_device s3c_device_i2c14 = {
 };
 #endif
 
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)
+static	struct	i2c_gpio_platform_data	i2c15_platdata = {
+	.sda_pin		= GPIO_ISDBT_SDA,
+	.scl_pin		= GPIO_ISDBT_SCL,
+	.udelay			= 2/*5*/, /* 250KHz */ 
+	.sda_is_open_drain	= 0,
+	.scl_is_open_drain	= 0,
+	.scl_is_output_only	= 0,
+};
+
+static struct platform_device s3c_device_i2c15 = {
+	.name				= "i2c-gpio",
+	.id					= 15,
+	.dev.platform_data	= &i2c15_platdata,
+};
+#endif
+
 #if defined(CONFIG_KEYBOARD_GPIO)
 static struct gpio_keys_button button_data[] = {
     { KEY_POWER, S5PV210_GPH2(6), 1, "Power", EV_KEY, 1, 5},
@@ -1938,6 +1958,91 @@ static struct s3c_platform_camera isx005 = {
 	.cam_power = isx005_power_en,
 };
 #endif /* CONFIG_VIDEO_ISX005 */
+
+#ifdef CONFIG_VIDEO_NM6XX 
+
+static int nm6xx_power_en(int onoff)
+{
+	printk("==============  NM6XX Tuner Sensor ============== \n");
+
+	return 0;
+}
+
+static struct nm6xx_platform_data nm6xx_plat = {
+	.default_width = 320,
+	.default_height = 240,
+	.pixelformat = V4L2_PIX_FMT_YUYV,
+	.freq = 13500000,
+	.is_mipi = 0,
+};
+
+static struct i2c_board_info  nm6xx_i2c_info = {
+//	I2C_BOARD_INFO("ISX005", 0x78 >> 1),
+// I2C_BOARD_INFO("ISX005", 0x1A >> 1),
+  I2C_BOARD_INFO("NM6XX", 0x1A ),
+	.platform_data = &nm6xx_plat,
+};
+
+static struct s3c_platform_camera nm6xx = {
+	.id = CAMERA_PAR_A,
+	.type = CAM_TYPE_ITU,
+	.fmt = ITU_601_YCBCR422_8BIT,//ITU_656_YCBCR422_8BIT,
+	.order422 = CAM_ORDER422_8BIT_YCBYCR,//CAM_ORDER422_8BIT_CBYCRY,
+	.i2c_busnum = 0,
+	.info = &nm6xx_i2c_info,
+	.pixelformat = V4L2_PIX_FMT_YUYV,
+	.srclk_name = "xusbxti",
+	.clk_name = "sclk_cam",
+	.clk_rate = 6750000,
+	.line_length = 320,
+	.width = 320,
+	.height = 240,
+	.window = {
+		.left 	= 0,
+		.top = 0,
+		.width = 320,
+		.height = 240,
+	},
+
+	/* Polarity */
+	.inv_pclk = 0,
+	.inv_vsync = 1,
+	.inv_href = 0,
+	.inv_hsync = 0,
+	.initialized = 0,
+	.cam_power = nm6xx_power_en,
+};
+
+static struct s3c_platform_camera dummy = {
+	.id = CAMERA_PAR_A,
+	.type = CAM_TYPE_ITU,
+	.fmt = ITU_601_YCBCR422_8BIT,//ITU_656_YCBCR422_8BIT,
+	.order422 = CAM_ORDER422_8BIT_YCBYCR,//CAM_ORDER422_8BIT_CBYCRY,
+	.i2c_busnum = 0,
+	.info = NULL,
+	.pixelformat = V4L2_PIX_FMT_YUYV,
+	.srclk_name = "xusbxti",
+	.clk_name = "sclk_cam",
+	.clk_rate = 6750000,
+	.line_length = 320,
+	.width = 320,
+	.height = 240,
+	.window = {
+		.left 	= 0,
+		.top = 0,
+		.width = 320,
+		.height = 240,
+	},
+
+	/* Polarity */
+	.inv_pclk = 0,
+	.inv_vsync = 1,
+	.inv_href = 0,
+	.inv_hsync = 0,
+	.initialized = 0,
+	.cam_power = NULL,
+};
+#endif
 
 #ifdef CONFIG_VIDEO_S5K6AAFX
 /* External camera module setting */
@@ -2603,6 +2708,11 @@ static struct s3c_platform_fimc fimc_plat_lsi = {
 #ifdef CONFIG_VIDEO_S5K6AAFX
 		&s5k6aafx,
 #endif
+#ifdef CONFIG_VIDEO_NM6XX 
+    &dummy, 
+    &nm6xx,
+#endif
+
 #ifdef CONFIG_VIDEO_S5K5CCGX
 		&s5k5ccgx,
 #endif
@@ -2926,6 +3036,14 @@ static struct i2c_board_info i2c_devs13[] __initdata = {
 	},
 };
 
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)
+	static struct i2c_board_info i2c_devs15[] __initdata = {
+		{
+			I2C_BOARD_INFO("nmi625", 0x61),
+		},
+	};
+#endif
+
 static struct resource ram_console_resource[] = {
 	{
 		.flags = IORESOURCE_MEM,
@@ -3248,11 +3366,51 @@ static void __init qt_touch_init(void)
     s3c_gpio_cfgpin(gpio, S3C_GPIO_OUTPUT);
     gpio_direction_output(gpio, 1);
 
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)||defined(CONFIG_TARGET_LOCALE_LTN_N)
+    gpio = S5PV210_GPG0(2);			
+#else
     gpio = S5PV210_GPJ0(5);				/* XMSMADDR_5 */
+#endif
     gpio_request(gpio, "TOUCH_INT");
     s3c_gpio_cfgpin(gpio, S3C_GPIO_SFN(0xf));
     s3c_gpio_setpull(gpio, S3C_GPIO_PULL_UP);
 }
+
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)
+static void __init nmi_i2s_cfg_gpio_init(void)
+{
+	s3c_gpio_cfgpin(GPIO_I2S_SCLK_18V, S3C_GPIO_SFN(0x4));
+	s3c_gpio_cfgpin(GPIO_I2S_MCLK_18V, S3C_GPIO_SFN(0x4));
+	s3c_gpio_cfgpin(GPIO_I2S_LRCLK_18V, S3C_GPIO_SFN(0x4));
+	s3c_gpio_cfgpin(GPIO_I2S_DATA_18V, S3C_GPIO_SFN(0x4));
+
+	s3c_gpio_setpull(S5PV210_GPC1(0), S3C_GPIO_PULL_NONE);
+	s3c_gpio_setpull(S5PV210_GPC1(1), S3C_GPIO_PULL_NONE);
+	s3c_gpio_setpull(S5PV210_GPC1(2), S3C_GPIO_PULL_NONE);
+	s3c_gpio_setpull(S5PV210_GPC1(3), S3C_GPIO_PULL_NONE);
+}
+#elif defined(CONFIG_TARGET_LOCALE_LTN_N)
+static void __init nmi_pwr_disable(void)
+{	
+	int err = 0;
+
+	if (HWREV == 13)    // Disable the ISDBT PWR : Only Latin HW 0.3
+	{		
+		err = gpio_request(GPIO_ISDBT_PWR_EN, "ISDBT_EN");
+		if (err) 
+		{
+			printk(KERN_ERR "failed to request GPIO_ISDBT_PWR_EN for TV control\n");
+		}
+
+		gpio_request(GPIO_ISDBT_PWR_EN,"ISDBT_EN");
+		udelay(50);
+		gpio_direction_output(GPIO_ISDBT_PWR_EN, 0);
+		gpio_free(GPIO_ISDBT_PWR_EN);	
+	}	
+}
+#endif
+
+
 
 #define S3C_GPIO_SETPIN_ZERO         0
 #define S3C_GPIO_SETPIN_ONE          1
@@ -3349,7 +3507,46 @@ static struct gpio_init_data herring_init_gpios[] = {
 		.pud	= S3C_GPIO_PULL_DOWN,
 		.drv	= S3C_GPIO_DRVSTR_1X,
 	},
-
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)||defined(CONFIG_TARGET_LOCALE_LTN_N)
+ 	{
+		.num	= S5PV210_GPC1(0),
+		.cfg	= S3C_GPIO_INPUT,
+		.val	= S3C_GPIO_SETPIN_NONE,
+		.pud	= S3C_GPIO_PULL_DOWN,
+		.drv	= S3C_GPIO_DRVSTR_1X,
+	}, {
+		.num	= S5PV210_GPC1(1),
+		.cfg	= S3C_GPIO_INPUT,
+		.val	= S3C_GPIO_SETPIN_NONE,
+		.pud	= S3C_GPIO_PULL_DOWN,
+		.drv	= S3C_GPIO_DRVSTR_1X,
+	}, {
+		.num	= S5PV210_GPC1(2),
+		.cfg	= S3C_GPIO_INPUT,
+		.val	= S3C_GPIO_SETPIN_NONE,
+		.pud	= S3C_GPIO_PULL_DOWN,
+		.drv	= S3C_GPIO_DRVSTR_1X,
+	}, {
+		.num	= S5PV210_GPC1(3),
+		.cfg	= S3C_GPIO_INPUT,
+		.val	= S3C_GPIO_SETPIN_NONE,
+		.pud	= S3C_GPIO_PULL_DOWN,
+		.drv	= S3C_GPIO_DRVSTR_1X,
+	}, {
+		.num	= S5PV210_GPC1(4),
+		.cfg	= S3C_GPIO_INPUT,
+		.val	= S3C_GPIO_SETPIN_NONE,
+		.pud	= S3C_GPIO_PULL_DOWN,
+		.drv	= S3C_GPIO_DRVSTR_1X,
+	},
+	/*{
+		.num	= S5PV210_GPD0(0),
+		.cfg	= S3C_GPIO_INPUT,
+		.val	= S3C_GPIO_SETPIN_NONE,
+		.pud	= S3C_GPIO_PULL_DOWN,
+		.drv	= S3C_GPIO_DRVSTR_1X,
+	}, */
+#else
 	/* {
 		.num	= S5PV210_GPC1(0),
 		.cfg	= S3C_GPIO_INPUT,
@@ -3389,6 +3586,7 @@ static struct gpio_init_data herring_init_gpios[] = {
 		.pud	= S3C_GPIO_PULL_DOWN,
 		.drv	= S3C_GPIO_DRVSTR_1X,
 	}, */
+#endif
 	 {
 		.num	= S5PV210_GPD0(1),
 		.cfg	= S3C_GPIO_INPUT,
@@ -3402,6 +3600,15 @@ static struct gpio_init_data herring_init_gpios[] = {
 		.pud	= S3C_GPIO_PULL_DOWN,
 		.drv	= S3C_GPIO_DRVSTR_1X,
 	},
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)||defined(CONFIG_TARGET_LOCALE_LTN_N)
+	{
+		.num	= S5PV210_GPD0(3),
+		.cfg	= S3C_GPIO_INPUT,
+		.val	= S3C_GPIO_SETPIN_NONE,
+		.pud	= S3C_GPIO_PULL_DOWN,
+		.drv	= S3C_GPIO_DRVSTR_1X,
+	},
+#else	
 // worked here, 2010. 11. 03  13:14 john
 	/*{
 		.num	= S5PV210_GPD0(3),
@@ -3410,7 +3617,7 @@ static struct gpio_init_data herring_init_gpios[] = {
 		.pud	= S3C_GPIO_PULL_DOWN,
 		.drv	= S3C_GPIO_DRVSTR_1X,
 	},*/
-
+#endif
 	{
 		.num	= S5PV210_GPD1(0),
 		.cfg	= S3C_GPIO_INPUT,
@@ -3602,13 +3809,25 @@ static struct gpio_init_data herring_init_gpios[] = {
 		.val	= S3C_GPIO_SETPIN_NONE,
 		.pud	= S3C_GPIO_PULL_DOWN,
 		.drv	= S3C_GPIO_DRVSTR_1X,
-	}, {
+	}, 
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)||defined(CONFIG_TARGET_LOCALE_LTN_N) 
+	{
+		.num	= S5PV210_GPG1(2),
+		.cfg	= S3C_GPIO_INPUT,
+		.val	= S3C_GPIO_SETPIN_NONE,
+		.pud	= S3C_GPIO_PULL_DOWN,
+		.drv	= S3C_GPIO_DRVSTR_1X,
+	}, 
+#else
+	{
 		.num	= S5PV210_GPG1(2),
 		.cfg	= S3C_GPIO_OUTPUT,
 		.val	= S3C_GPIO_SETPIN_ZERO,
 		.pud	= S3C_GPIO_PULL_NONE,
 		.drv	= S3C_GPIO_DRVSTR_1X,
-	}, {
+	}, 
+#endif
+	{
 		.num	= S5PV210_GPG1(3),
 		.cfg	= S3C_GPIO_INPUT,
 		.val	= S3C_GPIO_SETPIN_NONE,
@@ -3964,9 +4183,7 @@ static struct gpio_init_data herring_init_gpios[] = {
 		.val	= S3C_GPIO_SETPIN_NONE,
 		.pud	= S3C_GPIO_PULL_DOWN,
 		.drv	= S3C_GPIO_DRVSTR_1X,
-	},
-
-	{
+	}, {
 		.num	= S5PV210_GPJ0(0),
 		.cfg	= S3C_GPIO_INPUT,
 		.val	= S3C_GPIO_SETPIN_NONE,
@@ -4014,9 +4231,7 @@ static struct gpio_init_data herring_init_gpios[] = {
 		.val	= S3C_GPIO_SETPIN_NONE,
 		.pud	= S3C_GPIO_PULL_DOWN,
 		.drv	= S3C_GPIO_DRVSTR_1X,
-	},
-
-	{
+	}, {
 		.num	= S5PV210_GPJ1(0),
 		.cfg	= S3C_GPIO_INPUT,
 		.val	= S3C_GPIO_SETPIN_NONE,
@@ -4185,26 +4400,32 @@ static struct gpio_init_data herring_init_gpios[] = {
 		.pud	= S3C_GPIO_PULL_DOWN,
 		.drv	= S3C_GPIO_DRVSTR_1X,
 	},
-
+#if !defined(CONFIG_TARGET_LOCALE_LTN_L) && !defined(CONFIG_TARGET_LOCALE_LTN_N)
 	{
 		.num	= S5PV210_MP01(0),
 		.cfg	= S3C_GPIO_INPUT,
 		.val	= S3C_GPIO_SETPIN_NONE,
 		.pud	= S3C_GPIO_PULL_DOWN,
 		.drv	= S3C_GPIO_DRVSTR_1X,
-	}, {
+	}, 
+#endif
+	{
 		.num	= S5PV210_MP01(2),
 		.cfg	= S3C_GPIO_OUTPUT,
 		.val	= S3C_GPIO_SETPIN_ZERO,
 		.pud	= S3C_GPIO_PULL_DOWN,
 		.drv	= S3C_GPIO_DRVSTR_1X,
-	}, {
+	}, 
+#if !defined(CONFIG_TARGET_LOCALE_LTN_L) && !defined(CONFIG_TARGET_LOCALE_LTN_N) 
+        {
 		.num	= S5PV210_MP01(3),
 		.cfg	= S3C_GPIO_INPUT,
 		.val	= S3C_GPIO_SETPIN_NONE,
 		.pud	= S3C_GPIO_PULL_DOWN,
 		.drv	= S3C_GPIO_DRVSTR_1X,
-	}, {
+	}, 
+#endif
+	{
 		.num	= S5PV210_MP01(4),
 		.cfg	= S3C_GPIO_INPUT,
 		.val	= S3C_GPIO_SETPIN_NONE,
@@ -4300,14 +4521,17 @@ static struct gpio_init_data herring_init_gpios[] = {
 		.pud	= S3C_GPIO_PULL_DOWN,
 		.drv	= S3C_GPIO_DRVSTR_1X,
 	}, 
-#if defined(CONFIG_PN544)
+#if defined(CONFIG_PN544) && !defined(CONFIG_TARGET_LOCALE_LTN_L) && !defined(CONFIG_TARGET_LOCALE_LTN_N) 
 	{ /* NFC_SCL_18V - has external pull up resistor */
 		.num	= S5PV210_MP04(4),
 		.cfg	= S3C_GPIO_INPUT,
 		.val	= S3C_GPIO_SETPIN_NONE,
 		.pud	= S3C_GPIO_PULL_NONE,
 		.drv	= S3C_GPIO_DRVSTR_1X,
-	}, { /* NFC_SDA_18V - has external pull up resistor */
+	}, 
+#endif
+#if defined(CONFIG_PN544)
+        { /* NFC_SDA_18V - has external pull up resistor */
 		.num	= S5PV210_MP04(5),
 		.cfg	= S3C_GPIO_INPUT,
 		.val	= S3C_GPIO_SETPIN_NONE,
@@ -4359,13 +4583,16 @@ static struct gpio_init_data herring_init_gpios[] = {
 		.val	= S3C_GPIO_SETPIN_NONE,
 		.pud	= S3C_GPIO_PULL_DOWN,
 		.drv	= S3C_GPIO_DRVSTR_1X,
-	}, {
+	}, 
+#if !defined(CONFIG_TARGET_LOCALE_LTN_L) && !defined(CONFIG_TARGET_LOCALE_LTN_N)
+       {
 		.num	= S5PV210_MP05(6),
 		.cfg	= S3C_GPIO_INPUT,
 		.val	= S3C_GPIO_SETPIN_NONE,
 		.pud	= S3C_GPIO_PULL_DOWN,
 		.drv	= S3C_GPIO_DRVSTR_1X,
 	},
+#endif
 };
 
 void s3c_config_gpio_table(void)
@@ -6039,6 +6266,16 @@ static unsigned int p1_r12_sleep_gpio_table[][3] = {
 			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
 //	{S5PV210_GPB(3),  // GPIO_BT_nRST
 //			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)||defined(CONFIG_TARGET_LOCALE_LTN_N)
+	{S5PV210_GPB(4),  // HWREV_MODE3
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
+	{S5PV210_GPB(5),  // HWREV_MODE2
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
+	{S5PV210_GPB(6),  // HWREV_MODE1
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
+	{S5PV210_GPB(7),  // HWREV_MODE0
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
+#else
 	{S5PV210_GPB(4),  // NC
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
 	{S5PV210_GPB(5),  // NC
@@ -6047,7 +6284,7 @@ static unsigned int p1_r12_sleep_gpio_table[][3] = {
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
 	{S5PV210_GPB(7),  // NC
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
-
+#endif
 	{S5PV210_GPC0(0), 
 			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
 	{S5PV210_GPC0(1),  // NC
@@ -6059,6 +6296,29 @@ static unsigned int p1_r12_sleep_gpio_table[][3] = {
 	{S5PV210_GPC0(4), 
 			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
 
+#if defined(CONFIG_TARGET_LOCALE_LTN_L) 
+	{S5PV210_GPC1(0),  // I2S_SCLK_1.8V
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+	{S5PV210_GPC1(1),  // I2S_MCLK_1.8V
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+	{S5PV210_GPC1(2),  // I2S_LRCLK_1.8V
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+	{S5PV210_GPC1(3),  // I2S_DATA_1.8V
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+	{S5PV210_GPC1(4),  // NC
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+#elif defined(CONFIG_TARGET_LOCALE_LTN_N) // ys325.chang 2011.03.04
+	{S5PV210_GPC1(0),  // I2S_SCLK_1.8V
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+	{S5PV210_GPC1(1),  // I2S_MCLK_1.8V
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+	{S5PV210_GPC1(2),  // I2S_LRCLK_1.8V
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+	{S5PV210_GPC1(3),  // I2S_DATA_1.8V
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+	{S5PV210_GPC1(4),  // NC
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+#else
 	{S5PV210_GPC1(0),  // CMC_SLEEP
 			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
 	{S5PV210_GPC1(1),  // CMC_EN
@@ -6069,13 +6329,19 @@ static unsigned int p1_r12_sleep_gpio_table[][3] = {
 			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
 	{S5PV210_GPC1(4),  // CMC_BYPASS
 			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
-
+#endif
 	{S5PV210_GPD0(0),  // KEY_LED_EN
 			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
 	{S5PV210_GPD0(1),  // NC
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)||defined(CONFIG_TARGET_LOCALE_LTN_N) 
+	{S5PV210_GPD0(2),   // HWREV_MODE4
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
+#else
 	{S5PV210_GPD0(2),  // NC
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+#endif
 	{S5PV210_GPD0(3),  // LCD_CABC_PWM
 			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
 
@@ -6189,8 +6455,13 @@ static unsigned int p1_r12_sleep_gpio_table[][3] = {
 			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
 	{S5PV210_GPG0(1),  // NAND_CMD
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)||defined(CONFIG_TARGET_LOCALE_LTN_N) 
+	{S5PV210_GPG0(2),   // TOUCH_INT
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
+#else
 	{S5PV210_GPG0(2),  // NC
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN},
+#endif
 	{S5PV210_GPG0(3),  // NAND_D(0)
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
 	{S5PV210_GPG0(4),  // NAND_D(1)
@@ -6204,8 +6475,16 @@ static unsigned int p1_r12_sleep_gpio_table[][3] = {
 			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
 	{S5PV210_GPG1(1),  // GPS_PWR_EN
 			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)
+	{S5PV210_GPG1(2), // ISDBT_RSTn 
+			  S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_DOWN}, 
+#elif defined(CONFIG_TARGET_LOCALE_LTN_N)
+	{S5PV210_GPG1(2), // ISDBT_RSTn 
+			  S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN},  
+#else
 	{S5PV210_GPG1(2),  // NC
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN},
+#endif
 	{S5PV210_GPG1(3),  // NAND_D(4)
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
 	{S5PV210_GPG1(4),  // NAND_D(5)
@@ -6260,6 +6539,37 @@ static unsigned int p1_r12_sleep_gpio_table[][3] = {
 	{S5PV210_GPI(6),  // NC
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
 
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)
+	{S5PV210_GPJ0(0),  // ISDBT_SCL
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
+	{S5PV210_GPJ0(1),  // ISDBT_SDA
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
+	{S5PV210_GPJ0(2), // ISDBT_CLK
+			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_DOWN}, 
+	{S5PV210_GPJ0(3), // ISDBT_SYNC
+			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_DOWN}, 
+	{S5PV210_GPJ0(4), // ISDBT_VALID
+			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_DOWN},  
+	{S5PV210_GPJ0(5),  // ISDBT_DATA
+			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_DOWN},  
+	{S5PV210_GPJ0(6), // ISDBT_ERR
+			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_DOWN}, 
+#elif defined(CONFIG_TARGET_LOCALE_LTN_N) // ys325.chang 2011.03.04
+	{S5PV210_GPJ0(0),  // ISDBT_SCL
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+	{S5PV210_GPJ0(1),  // ISDBT_SDA
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+	{S5PV210_GPJ0(2), // ISDBT_CLK
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+	{S5PV210_GPJ0(3), // ISDBT_SYNC
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+	{S5PV210_GPJ0(4), // ISDBT_VALID
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN},  
+	{S5PV210_GPJ0(5),  // ISDBT_DATA
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN},  
+	{S5PV210_GPJ0(6), // ISDBT_ERR
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+#else
 //	{S5PV210_GPJ0(0),  // GPIO_WLAN_BT_EN
 //			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
 	{S5PV210_GPJ0(1), 
@@ -6274,17 +6584,30 @@ static unsigned int p1_r12_sleep_gpio_table[][3] = {
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN},
 	{S5PV210_GPJ0(6), 
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
+#endif
 	{S5PV210_GPJ0(7), 
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
-
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)||defined(CONFIG_TARGET_LOCALE_LTN_N)
+//	{S5PV210_GPJ1(0),   // GPIO_WLAN_BT_EN
+//			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
+#else
 	{S5PV210_GPJ1(0),  // NC
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+#endif
 	{S5PV210_GPJ1(1),  // MESSMEMORY_EN
 			S3C_GPIO_SLP_OUT1, S3C_GPIO_PULL_NONE}, 
 	{S5PV210_GPJ1(2), 
 			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)
+	{S5PV210_GPJ1(3), // ISDBT_PWR_EN
+			  S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_DOWN}, 
+#elif defined(CONFIG_TARGET_LOCALE_LTN_N)
+	{S5PV210_GPJ1(3), // ISDBT_PWR_EN
+			  S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+#else
 	{S5PV210_GPJ1(3),  // NC
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+#endif
 	{S5PV210_GPJ1(5), 
 			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
 
@@ -6307,8 +6630,16 @@ static unsigned int p1_r12_sleep_gpio_table[][3] = {
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
 	{S5PV210_GPJ3(1), 
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)
+	{S5PV210_GPJ3(2),  // ATV_RSTn (Latin Rev0.3)
+			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
+#elif defined(CONFIG_TARGET_LOCALE_LTN_N)
+	{S5PV210_GPJ3(2),  // ATV_RSTn (Latin Rev0.3)
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+#else
 	{S5PV210_GPJ3(2),  // NC(Rev0.6), CAM_LDO_EN(Rev0.7)
 			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
+#endif
 	{S5PV210_GPJ3(3), 
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
 	{S5PV210_GPJ3(4), 
@@ -6333,14 +6664,26 @@ static unsigned int p1_r12_sleep_gpio_table[][3] = {
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
 
 	/* memory part */
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)||defined(CONFIG_TARGET_LOCALE_LTN_N)
+	{S5PV210_MP01(0),  // CMC_SHDN
+			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN},
+	{S5PV210_MP01(1),  // CMC_SLEEP
+			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
+#else
 	{S5PV210_MP01(0),  // NC
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
 	{S5PV210_MP01(1),  // NC
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+#endif
 	{S5PV210_MP01(2),  // RESET_REQ_N
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)||defined(CONFIG_TARGET_LOCALE_LTN_N)
+	{S5PV210_MP01(3),  // CMC_RST
+			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
+#else
 	{S5PV210_MP01(3),  // NC
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+#endif
 	{S5PV210_MP01(4),  // AP_NANDCS
 			S3C_GPIO_SLP_OUT1, S3C_GPIO_PULL_NONE}, 
 	{S5PV210_MP01(5),  // NC
@@ -6384,8 +6727,13 @@ static unsigned int p1_r12_sleep_gpio_table[][3] = {
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
 	{S5PV210_MP04(3),  // NC
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)||defined(CONFIG_TARGET_LOCALE_LTN_N)
+	{S5PV210_MP04(4),   // CMC_EN
+			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
+#else
 	{S5PV210_MP04(4),  // NC
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+#endif
 	{S5PV210_MP04(5),  // CMC_SDA_1.8V
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
 	{S5PV210_MP04(6),  // CMC_SCL_1.8V
@@ -6403,8 +6751,13 @@ static unsigned int p1_r12_sleep_gpio_table[][3] = {
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_NONE}, 
 	{S5PV210_MP05(4),  // NC
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)||defined(CONFIG_TARGET_LOCALE_LTN_N)
+	{S5PV210_MP05(6),  // CMC_BYPASS
+			S3C_GPIO_SLP_OUT0, S3C_GPIO_PULL_NONE}, 
+#else
 	{S5PV210_MP05(6),  // NC
 			S3C_GPIO_SLP_INPUT, S3C_GPIO_PULL_DOWN}, 
+#endif
 	{S5PV210_MP05(7),  //UART_SEL
 			S3C_GPIO_SLP_PREV, S3C_GPIO_PULL_NONE},
 
@@ -6799,6 +7152,21 @@ extern bool keyboard_enable;
 			p1_lcd_tft_sleep_gpio_table);
 //	}
 
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)
+	if(HWREV >= 16) {  
+		s3c_gpio_cfgpin(GPIO_ATV_RSTn_REV10, S3C_GPIO_INPUT);
+		s3c_gpio_setpull(GPIO_ATV_RSTn_REV10, S3C_GPIO_PULL_DOWN);
+
+		s3c_gpio_cfgpin(GPIO_ISDBT_PWR_EN_REV10, S3C_GPIO_INPUT);
+		s3c_gpio_setpull(GPIO_ISDBT_PWR_EN_REV10, S3C_GPIO_PULL_DOWN);
+	}
+
+	if(HWREV == 16) {  
+
+		s3c_gpio_cfgpin(GPIO_TV_CLK_EN, S3C_GPIO_OUTPUT);
+		s3c_gpio_setpull(GPIO_TV_CLK_EN, S3C_GPIO_PULL_NONE);
+	}
+#endif
 }
 
 EXPORT_SYMBOL(s3c_config_sleep_gpio);
@@ -7138,6 +7506,9 @@ static struct platform_device *crespo_devices[] __initdata = {
 #if defined(CONFIG_PN544)	
 	&s3c_device_i2c14, /* nfc sensor */
 #endif
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)
+	&s3c_device_i2c15, /* nmi625  */
+#endif	
 	&sec_device_switch,  // samsung switch driver
 
 #ifdef CONFIG_USB_GADGET
@@ -7211,6 +7582,9 @@ static struct platform_device *crespo_devices[] __initdata = {
 #ifdef CONFIG_SND_S5P_RP
 	&s5p_device_rp,
 #endif
+#if defined(CONFIG_VIDEO_TSI) || defined(CONFIG_TARGET_LOCALE_LTN_L)
+	&s3c_device_tsi,
+#endif	
 };
 
 unsigned int HWREV;
@@ -7449,6 +7823,9 @@ static void __init p1_machine_init(void)
 	/* nfc sensor */
 	//i2c_register_board_info(14, i2c_devs14, ARRAY_SIZE(i2c_devs14));
 #endif
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)
+	i2c_register_board_info(15, i2c_devs15, ARRAY_SIZE(i2c_devs15));
+#endif
 
 #ifdef CONFIG_FB_S3C_LVDS
 #if defined(CONFIG_FB_S3C_CMC623)
@@ -7516,6 +7893,12 @@ static void __init p1_machine_init(void)
 	crespo_init_wifi_mem();
 	
 	qt_touch_init();
+
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)
+	nmi_i2s_cfg_gpio_init();
+#elif defined(CONFIG_TARGET_LOCALE_LTN_N)
+	nmi_pwr_disable();  // Disable the ISDBT PWR : Only Latin HW 0.3
+#endif
 
 #ifdef CONFIG_VIDEO_TV20
 	platform_device_register(&s5p_device_tvout);
@@ -7618,7 +8001,13 @@ MACHINE_START(SMDKC110, "SMDKC110")
 #endif
 MACHINE_END
 
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)
+MACHINE_START(P1, "GT-P1000L")
+#elif defined(CONFIG_TARGET_LOCALE_LTN_N)
+MACHINE_START(P1, "GT-P1000N")
+#else
 MACHINE_START(P1, "GT-P1000")
+#endif	
 	.phys_io	= S3C_PA_UART & 0xfff00000,
 	.io_pg_offst	= (((u32)S3C_VA_UART) >> 18) & 0xfffc,
 	.boot_params	= S5P_PA_SDRAM + 0x100,

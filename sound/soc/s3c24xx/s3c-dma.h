@@ -29,5 +29,8 @@ struct s3c_dma_params {
 extern struct snd_soc_platform s3c24xx_soc_platform;
 extern struct snd_soc_platform s3c24xx_pcm_soc_platform;
 extern struct snd_ac97_bus_ops s3c24xx_ac97_ops;
+#if defined(CONFIG_TARGET_LOCALE_LTN_L)
+extern struct snd_soc_platform s5pc110_soc_platform;
+#endif
 
 #endif

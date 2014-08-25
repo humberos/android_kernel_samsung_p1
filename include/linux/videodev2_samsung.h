@@ -486,7 +486,12 @@ enum v4l2_slow_ae_mode {
 enum v4l2_camera_id {
 	CAMERA_ID_BACK  = 0,
 	CAMERA_ID_FRONT = 1,
+#ifdef CONFIG_VIDEO_NM6XX 
+	CAMERA_ID_MOBILETV = 3, 
+	CAMERA_ID_MAX = 4,	
+#else
 	CAMERA_ID_MAX = 2,
+#endif		
 };
 
 /* Pixel format FOURCC depth Description */
