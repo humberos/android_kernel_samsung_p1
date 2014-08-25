@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.35.7
-# Mon Aug 25 04:05:58 2014
+# Mon Aug 25 04:04:53 2014
 #
 CONFIG_ARM=y
 CONFIG_HAVE_PWM=y
@@ -308,9 +308,9 @@ CONFIG_S5PV210_SETUP_SDHCI_GPIO=y
 CONFIG_S5PV210_POWER_DOMAIN=y
 # CONFIG_MACH_AQUILA is not set
 # CONFIG_MACH_GONI is not set
-# CONFIG_TARGET_LOCALE_LTN is not set
+CONFIG_TARGET_LOCALE_LTN=y
 # CONFIG_TARGET_LOCALE_LTN_L is not set
-# CONFIG_TARGET_LOCALE_LTN_N is not set
+CONFIG_TARGET_LOCALE_LTN_N=y
 
 #
 # MMC/SD slot setup

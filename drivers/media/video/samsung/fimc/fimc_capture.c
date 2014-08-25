@@ -297,7 +297,11 @@ static int fimc_camera_start(struct fimc_control *ctrl)
 			ctrl->cam->height = cam_frmsize.discrete.height;
 			printk("line(%d):vtmode = %d, rotate = %d, device = front(%d), cam->width = %d, cam->height = %d\n", __LINE__, ctrl->vt_mode, ctrl->cap->rotate, fimc->active_camera, ctrl->cam->width, ctrl->cam->height);
 		} else if ((ctrl->vt_mode == 1 || ctrl->vt_mode == 2)
-				&& (fimc->active_camera == CAMERA_ID_BACK || fimc->active_camera == CAMERA_ID_MAX)
+				&& (fimc->active_camera == CAMERA_ID_BACK || fimc->active_camera == CAMERA_ID_MAX
+#if defined(CONFIG_VIDEO_NM6XX)
+				|| fimc->active_camera == CAMERA_ID_MOBILETV
+#endif 	
+				)
 				&& (ctrl->cap->rotate == 90 || ctrl->cap->rotate == 270)) {
 			ctrl->cam->window.left = 176;
 			ctrl->cam->window.top = 0;
@@ -700,7 +704,11 @@ int fimc_s_input(struct file *file, void *fh, unsigned int i)
 
 	fimc_dbg("%s: index %d\n", __func__, i);
 
+#if defined(CONFIG_VIDEO_NM6XX)
+	if( i == 0 && camera_back_check && camera_active_type == 4 )
+#else
 	if( i == 0 && camera_back_check && camera_active_type == 2 )
+#endif
 		i = camera_active_type;
 
 	/* P1 Project([arun.c@samsung.com]) 2010.05.20. [Implemented ESD code] */

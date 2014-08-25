@@ -162,3 +162,12 @@ config SND_SOC_SMDK_WM9713
 	select SND_S3C_SOC_AC97
 	help
 	  Sat Y if you want to add support for SoC audio on the SMDK.
+
+config SND_S3C_I2S2
+	tristate
+
+config SND_C110_IIS2
+	tristate "IIS2-atv device"
+	depends on  ARCH_S5PV210 
+		select SND_S3C_I2S2
+		select SND_SOC_NMI625

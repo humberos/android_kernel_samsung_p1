@@ -203,3 +203,7 @@ void __init s3c_usb_set_serial(void);
 extern struct platform_device s5p_device_tvout;
 extern struct platform_device s5p_device_cec;
 extern struct platform_device s5p_device_hpd;
+
+#if defined(CONFIG_VIDEO_TSI) || defined(CONFIG_TARGET_LOCALE_LTN_L)
+extern struct platform_device s3c_device_tsi;
+#endif

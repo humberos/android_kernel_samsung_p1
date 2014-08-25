@@ -73,6 +73,24 @@ config MACH_GONI
 	  Machine support for Samsung GONI board
 	  S5PC110(MCP) is one of package option of S5PV210
 
+config TARGET_LOCALE_LTN
+	bool "LTN"
+	default n
+	help
+	  Support LTN Common
+	  
+config TARGET_LOCALE_LTN_L
+	bool "LTN L"
+	default n
+	help
+	  Support LTN TV Board
+	  
+config TARGET_LOCALE_LTN_N
+	bool "LTN N"
+	default n
+	help
+	  Support LTN NON-TV Board
+
 comment "MMC/SD slot setup"
 depends on PLAT_S5P
 

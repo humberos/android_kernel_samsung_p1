@@ -270,6 +270,11 @@ config SND_SOC_WM9712
 config SND_SOC_WM9713
 	tristate
 
+# latin_cam:kihyung.nam added for NMI625 sound [
+config SND_SOC_NMI625
+	tristate
+# latin_cam:kihyung.nam added for NMI625 sound ]
+
 # Amp
 config SND_SOC_MAX9877
 	tristate

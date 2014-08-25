@@ -42,6 +42,8 @@ snd-soc-smdk-wm9713-objs := smdk_wm9713.o
 
 snd-soc-s5pc1xx-wm8994-objs := s5pc1xx-wm8994.o
 snd-soc-s5pc1xx-pcm-wm8994-objs := s5pc1xx-pcm-wm8994.o
+snd-soc-s3c-i2s2-v2-objs := s3c-i2s2-v2.o
+snd-soc-s5pc1xx-i2s2-objs := s5pc1xx-i2s2.o
 
 obj-$(CONFIG_SND_S3C24XX_SOC_JIVE_WM8750) += snd-soc-jive-wm8750.o
 obj-$(CONFIG_SND_S3C24XX_SOC_NEO1973_WM8753) += snd-soc-neo1973-wm8753.o
@@ -56,3 +58,7 @@ obj-$(CONFIG_SND_S3C64XX_SOC_WM8580) += snd-soc-smdk64xx-wm8580.o
 obj-$(CONFIG_SND_S5P_WM8994)  += snd-soc-s5pc1xx-wm8994.o
 obj-$(CONFIG_SND_SOC_SMDK_WM9713) += snd-soc-smdk-wm9713.o
 obj-$(CONFIG_SND_C110_PCM)	+= snd-soc-s5pc1xx-pcm-wm8994.o
+obj-$(CONFIG_SND_S3C_I2S2)		+= snd-soc-s5pc1xx-i2s2.o
+obj-$(CONFIG_SND_S3C_I2S2)		+= snd-soc-s3c-i2s2-v2.o
+obj-$(CONFIG_SND_S3C_I2S2)		+= s5pc1xx-atv.o 
+obj-$(CONFIG_SND_C110_IIS2)	+= s3c-i2s2-dma.o
