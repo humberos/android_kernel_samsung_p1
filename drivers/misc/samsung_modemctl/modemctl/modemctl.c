@@ -136,8 +136,6 @@ static int sim_check_status(struct modemctl *);
 static int sim_get_reference_status(struct modemctl *);
 static void sim_irq_debounce_timer_func(unsigned);
 
-
-#if 1 //defined (CONFIG_TARGET_LOCALE_EUR) || defined (CONFIG_TARGET_LOCALE_HKTW) || defined (CONFIG_TARGET_LOCALE_HKTW_FET) || defined(CONFIG_TARGET_LOCALE_VZW) || defined(CONFIG_TARGET_LOCALE_USAGSM)
 static void xmm_on(struct modemctl *);
 static void xmm_off(struct modemctl *);
 static void xmm_reset(struct modemctl *);
@@ -154,26 +152,6 @@ static struct modemctl_info mdmctl_info[] = {
 		},
 	},
 };
-#elif defined (CONFIG_TARGET_LOCALE_KOR)
-static void msm_on(struct modemctl *);
-static void msm_off(struct modemctl *);
-static void msm_reset(struct modemctl *);
-static void msm_boot_on(struct modemctl *);
-static void msm_boot_off(struct modemctl *);
-
-static struct modemctl_info mdmctl_info[] = {
-	{
-		.name = "msm",
-		.ops = {
-			.modem_on = msm_on,
-			.modem_off = msm_off,
-			.modem_reset = msm_reset,
-			.modem_boot_on = msm_boot_on,
-			.modem_boot_off = msm_boot_off,
-		},
-	},
-};
-#endif
 
 static ssize_t show_control(struct device *d,
 		struct device_attribute *attr, char *buf);
@@ -188,11 +166,11 @@ static ssize_t show_sim(struct device *d,
 static ssize_t show_phoneactive(struct device *d,
 		struct device_attribute *attr, char *buf);
 
-static DEVICE_ATTR(control, S_IRUSR | S_IRGRP | S_IWUSR | S_IWGRP, show_control, store_control);
-static DEVICE_ATTR(status, S_IRUGO, show_status, NULL);
-static DEVICE_ATTR(debug, S_IRUGO, show_debug, NULL);
-static DEVICE_ATTR(sim, S_IRUGO, show_sim, NULL);
-static DEVICE_ATTR(phoneactive, S_IRUGO, show_phoneactive, NULL);
+static DEVICE_ATTR(control, 0664, show_control, store_control);
+static DEVICE_ATTR(status, 0664, show_status, NULL);
+static DEVICE_ATTR(debug, 0664, show_debug, NULL);
+static DEVICE_ATTR(sim, 0664, show_sim, NULL);
+static DEVICE_ATTR(phoneactive, 0664, show_phoneactive, NULL);
 
 static struct attribute *modemctl_attributes[] = {
 	&dev_attr_control.attr,
@@ -207,10 +185,8 @@ static const struct attribute_group modemctl_group = {
 	.attrs = modemctl_attributes,
 };
 
-#if 1 //defined (CONFIG_TARGET_LOCALE_EUR) || defined (CONFIG_TARGET_LOCALE_HKTW) || defined (CONFIG_TARGET_LOCALE_HKTW_FET) || defined (CONFIG_TARGET_LOCALE_VZW) || defined(CONFIG_TARGET_LOCALE_USAGSM)
 /* declare mailbox init function for xmm */
 extern void onedram_init_mailbox(void);
-static void xmm_reset(struct modemctl *mc);
 
 static void xmm_on(struct modemctl *mc)
 {
@@ -222,26 +198,30 @@ static void xmm_on(struct modemctl *mc)
 	gpio_set_value(mc->gpio_pda_active, 0);
 	/* call mailbox init : BA goes to high, AB goes to low */
 	onedram_init_mailbox();
+	/* ensure cp_reset pin set to low */
 	gpio_set_value(mc->gpio_cp_reset, 0);
 	if(mc->gpio_reset_req_n)
-		gpio_set_value(mc->gpio_reset_req_n, 0);
-	msleep(40);
+		gpio_direction_output(mc->gpio_reset_req_n, 0);
 
+	msleep(500);
+
+	//gpio_set_value(mc->gpio_cp_reset, 1);
 	if(mc->gpio_phone_on)
 		gpio_set_value(mc->gpio_phone_on, 1);
-	gpio_set_value(mc->gpio_cp_reset, 1);
+	gpio_set_value(mc->gpio_cp_reset, 0);
+	msleep(100);  /* no spec, confirm later exactly how much time
+			needed to initialize CP with RESET_PMU_N */
 
+	gpio_set_value(mc->gpio_cp_reset, 1);
+	/* Follow RESET timming delay not Power-On timming,
+	   because CP_RST & PHONE_ON have been set high already. */
+	// msleep(30);  /* > 26.6 + 2 msec */
+	//msleep(40);     /* > 37.2 + 2 msec */
 	msleep(100); /*wait modem stable */
 
-//	if(mc->gpio_reset_req_n)
-//		gpio_set_value(mc->gpio_reset_req_n, 1);
-
-//	msleep(10);
 	gpio_set_value(mc->gpio_pda_active, 1);
-	
-	//msleep(1000);
-	//xmm_reset(mc);
-	//msleep(100);
+	if(mc->gpio_reset_req_n)
+		gpio_direction_input(mc->gpio_reset_req_n);
 }
 
 static void xmm_off(struct modemctl *mc)
@@ -250,17 +230,9 @@ static void xmm_off(struct modemctl *mc)
 	if(!mc->gpio_cp_reset)
 		return;
 
-	gpio_set_value(mc->gpio_pda_active, 0);
-	if(mc->gpio_reset_req_n)
-		gpio_set_value(mc->gpio_reset_req_n, 0);
-
-	//msleep(1);
-	
 	if(mc->gpio_phone_on)
 		gpio_set_value(mc->gpio_phone_on, 0);
 	gpio_set_value(mc->gpio_cp_reset, 0);
-
-	onedram_init_mailbox();
 }
 
 static void xmm_reset(struct modemctl *mc)
@@ -296,85 +268,7 @@ static void xmm_boot(struct modemctl *mc)
 	if(mc->gpio_flm_sel)
 		gpio_set_value(mc->gpio_flm_sel, 0);
 }
-#elif defined (CONFIG_TARGET_LOCALE_KOR)
-static void msm_on(struct modemctl *mc)
-{
-	dev_dbg(mc->dev, "%s\n", __func__);
-	if(!mc->gpio_cp_reset || !mc->gpio_phone_on)
-		return;
 
-	gpio_set_value(mc->gpio_pda_active, 0);
-	//gpio_set_value(mc->gpio_phone_on, 0);
-	//gpio_set_value(mc->gpio_cp_reset, 0);
-	//msleep(500);
-	gpio_set_value(mc->gpio_phone_on, 1);
-	msleep(30);
-	gpio_set_value(mc->gpio_cp_reset, 1);
-	msleep(300);
-	gpio_set_value(mc->gpio_phone_on, 0);
-	msleep(500);
-
-	gpio_set_value(mc->gpio_pda_active, 1);
-
-	if(!mc->gpio_sim_ndetect)
-		return;
-}
-
-static void msm_off(struct modemctl *mc)
-{
-	dev_dbg(mc->dev, "%s\n", __func__);
-	if(!mc->gpio_cp_reset || !mc->gpio_phone_on)
-		return;
-
-	gpio_set_value(mc->gpio_phone_on, 0);
-	gpio_set_value(mc->gpio_cp_reset, 0);
-}
-
-static void msm_reset(struct modemctl *mc)
-{
-	dev_dbg(mc->dev, "%s\n", __func__);
-	if(!mc->gpio_cp_reset || !mc->gpio_phone_on)
-		return;
-
-	/* To Do :
-	 * hard_reset(RESET_PMU_N) and soft_reset(RESET_REQ_N)
-	 * should be divided later.
-	 * soft_reset is used for CORE_DUMP
-	 */
-	gpio_set_value(mc->gpio_cp_reset, 0);
-	msleep(500); /* no spec, confirm later exactly how much time
-		       needed to initialize CP with RESET_PMU_N */
-	gpio_set_value(mc->gpio_cp_reset, 1);
-	msleep(40); /* > 37.2 + 2 msec */
-
-	gpio_set_value(mc->gpio_phone_on, 0);
-	gpio_set_value(mc->gpio_cp_reset, 0);
-}
-
-static void msm_boot_on(struct modemctl *mc)
-{
-	dev_dbg(mc->dev, "%s\n", __func__);
-
-	if(mc->gpio_flm_sel)
-		gpio_set_value(mc->gpio_flm_sel, 1);
-
-	udelay(10);
-
-	if(mc->gpio_usim_boot)
-		gpio_set_value(mc->gpio_usim_boot, 1);
-}
-
-static void msm_boot_off(struct modemctl *mc)
-{
-	dev_dbg(mc->dev, "%s\n", __func__);
-
-	if(mc->gpio_usim_boot)
-		gpio_set_value(mc->gpio_usim_boot, 0);
-
-	if(mc->gpio_flm_sel)
-		gpio_set_value(mc->gpio_flm_sel, 0);
-}
-#endif
 
 static int modem_on(struct modemctl *mc)
 {
@@ -592,6 +486,7 @@ static ssize_t show_phoneactive(struct device *d,
 static ssize_t show_debug(struct device *d,
 		struct device_attribute *attr, char *buf)
 {
+	/*
 	char *p = buf;
 	int i;
 	struct modemctl *mc = dev_get_drvdata(d);
@@ -634,8 +529,8 @@ static ssize_t show_debug(struct device *d,
 		}
 		p += sprintf(p, "%s\n", mdmctl_info[i].name);
 	}
-
-	return p - buf;
+*/
+	return 0;
 }
 
 static void mc_work(struct work_struct *work)
@@ -878,7 +773,6 @@ static int __devinit modemctl_probe(struct platform_device *pdev)
 				irq_phone_active);
 		goto err;
 	}
-
 	r = enable_irq_wake(irq_phone_active);
 	if(r) {
 		dev_err(&pdev->dev, "failed to set wakeup source(%d)\n",
