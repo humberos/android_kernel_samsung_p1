@@ -211,7 +211,7 @@ extern unsigned int HWREV;
 static DEFINE_MUTEX(pdp_mutex);
 static struct net_device *pdp_devs[PDP_MAX];
 static int pdp_cnt;
-unsigned long pdp_bitmap[PDP_MAX/BITS_PER_LONG];
+unsigned long pdp_bitmap[DIV_ROUND_UP(PDP_MAX, BITS_PER_LONG)];
 
 static void clear_pdp_wq(struct work_struct *work);
 static DECLARE_WORK(pdp_work, clear_pdp_wq);
@@ -232,10 +232,10 @@ static ssize_t store_suspend(struct device *d,
 static ssize_t store_resume(struct device *d,
 		struct device_attribute *attr, const char *buf, size_t count);
 
-static DEVICE_ATTR(activate, S_IRUSR | S_IRGRP | S_IWUSR | S_IWGRP, show_act, store_act);
-static DEVICE_ATTR(deactivate, S_IRUSR | S_IRGRP | S_IWUSR | S_IWGRP, show_deact, store_deact);
-static DEVICE_ATTR(suspend, S_IRUSR | S_IRGRP | S_IWUSR | S_IWGRP, show_suspend, store_suspend);
-static DEVICE_ATTR(resume, S_IWUSR | S_IWGRP, NULL, store_resume);
+static DEVICE_ATTR(activate, 0664, show_act, store_act);
+static DEVICE_ATTR(deactivate, 0664, show_deact, store_deact);
+static DEVICE_ATTR(suspend, 0664, show_suspend, store_suspend);
+static DEVICE_ATTR(resume, 0664, NULL, store_resume);
 
 static struct attribute *pdp_attributes[] = {
 	&dev_attr_activate.attr,
@@ -1615,7 +1615,10 @@ int sipc_read(struct sipc *si, u32 mailbox, int *cond)
 			res = mb_data[i].mask_res_ack;
 	}
 
+#if !defined(CONFIG_ARIES_NTT)
 	_req_rel_auth(si);
+#endif
+
 	_put_auth(si);
 
 	if (res)
