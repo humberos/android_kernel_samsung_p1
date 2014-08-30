@@ -32,6 +32,8 @@
 #define dprintk(msg...) cpufreq_debug_printk(CPUFREQ_DEBUG_CORE, \
 						"cpufreq-core", msg)
 
+int enabled_freqs[7] = { 1, 1, 1, 1, 1, 1, 1 };
+
 /**
  * The "cpufreq driver" - the arch- or hardware-dependent low
  * level driver of CPUFreq support, and its spinlock. This lock
@@ -662,6 +664,40 @@ static ssize_t show_bios_limit(struct cpufreq_policy *policy, char *buf)
 	return sprintf(buf, "%u\n", policy->cpuinfo.max_freq);
 }
 
+static ssize_t show_states_enabled_table(struct cpufreq_policy *policy, char *buf)
+{
+	return sprintf(buf, "%d %d %d %d %d %d %d",
+		 enabled_freqs[0]
+		,enabled_freqs[1]
+		,enabled_freqs[2]
+		,enabled_freqs[3]
+		,enabled_freqs[4]
+		,enabled_freqs[5]
+		,enabled_freqs[6]
+	);
+}
+
+static ssize_t store_states_enabled_table(struct cpufreq_policy *policy,
+				const char *buf, int count)
+{
+	unsigned int ret = -EINVAL;
+
+	ret = sscanf(buf, "%d %d %d %d %d %d %d"
+		,&enabled_freqs[0]
+		,&enabled_freqs[1]
+		,&enabled_freqs[2]
+		,&enabled_freqs[3]
+		,&enabled_freqs[4]
+		,&enabled_freqs[5]
+		,&enabled_freqs[6]
+	);
+
+	if (ret != 1)
+		return -EINVAL;
+	else
+		return count;
+}
+
 cpufreq_freq_attr_ro_perm(cpuinfo_cur_freq, 0400);
 cpufreq_freq_attr_ro(cpuinfo_min_freq);
 cpufreq_freq_attr_ro(cpuinfo_max_freq);
@@ -676,6 +712,7 @@ cpufreq_freq_attr_rw(scaling_min_freq);
 cpufreq_freq_attr_rw(scaling_max_freq);
 cpufreq_freq_attr_rw(scaling_governor);
 cpufreq_freq_attr_rw(scaling_setspeed);
+cpufreq_freq_attr_rw(states_enabled_table);
 
 static struct attribute *default_attrs[] = {
 	&cpuinfo_min_freq.attr,
@@ -689,6 +726,7 @@ static struct attribute *default_attrs[] = {
 	&scaling_driver.attr,
 	&scaling_available_governors.attr,
 	&scaling_setspeed.attr,
+	&states_enabled_table.attr,
 	NULL
 };
 
