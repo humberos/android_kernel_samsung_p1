@@ -117,3 +117,4 @@ obj-$(CONFIG_STAGING)		+= staging/
 obj-$(CONFIG_SENSOR)		+= sensor/
 obj-y				+= platform/
 obj-y				+= ieee802154/
+obj-$(CONFIG_SUSPEND_BACKOFF)	+= backoff/

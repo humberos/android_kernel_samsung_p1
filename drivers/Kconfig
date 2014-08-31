@@ -119,4 +119,6 @@ source "drivers/platform/Kconfig"
 
 source "drivers/sensor/Kconfig"
 
+source "drivers/backoff/Kconfig"
+
 endmenu
