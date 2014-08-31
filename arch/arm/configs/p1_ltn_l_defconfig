@@ -1,7 +1,7 @@
 #
 # Automatically generated make config: don't edit
 # Linux kernel version: 2.6.35.14
-# Sun Aug 31 13:28:52 2014
+# Sun Aug 31 15:18:57 2014
 #
 CONFIG_ARM=y
 CONFIG_HAVE_PWM=y
@@ -1876,6 +1876,11 @@ CONFIG_GYRO=y
 CONFIG_GYRO_L3G4200D=y
 CONFIG_LIGHT=y
 CONFIG_LIGHT_BH1721=y
+
+#
+# Suspend backoff
+#
+CONFIG_SUSPEND_BACKOFF=y
 
 #
 # File systems
