@@ -62,9 +62,10 @@
 
 #ifdef CONFIG_ANDROID_PMEM
 #include <linux/android_pmem.h>
+#endif
+
 #include <plat/media.h>
 #include <mach/media.h>
-#endif
 
 #ifdef CONFIG_S5PV210_POWER_DOMAIN
 #include <mach/power-domain.h>
@@ -437,6 +438,7 @@ static struct s5p_media_device crespo_media_devs[] = {
 		.memsize = S5PV210_VIDEO_SAMSUNG_MEMSIZE_FIMD,
 		.paddr = 0,
 	},
+#ifdef CONFIG_ANDROID_PMEM
 	[7] = {
 		.id = S5P_MDEV_PMEM,
 		.name = "pmem",
@@ -458,6 +460,7 @@ static struct s5p_media_device crespo_media_devs[] = {
 		.memsize = S5PV210_VIDEO_SAMSUNG_MEMSIZE_TEXSTREAM,
 		.paddr = 0,
 	},
+#endif
 #ifdef CONFIG_WLAN_SAMSUNG_MEMSIZE_BCM
 	[10] = {
 		.id = S3C_MDEV_WIFI,
@@ -466,7 +469,7 @@ static struct s5p_media_device crespo_media_devs[] = {
 		.memsize = CONFIG_WLAN_SAMSUNG_MEMSIZE_BCM * SZ_1K,
 		.paddr = 0,
 	},
-#endif	
+#endif
 };
 
 /* MAX8998 LDO */
