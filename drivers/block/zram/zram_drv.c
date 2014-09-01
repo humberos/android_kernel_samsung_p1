@@ -23,6 +23,7 @@
 #include <linux/kernel.h>
 #include <linux/bio.h>
 #include <linux/bitops.h>
+#include <linux/bit_spinlock.h>
 #include <linux/blkdev.h>
 #include <linux/buffer_head.h>
 #include <linux/device.h>
@@ -305,12 +306,12 @@ static void handle_zero_page(struct bio_vec *bvec)
 	struct page *page = bvec->bv_page;
 	void *user_mem;
 
-	user_mem = kmap_atomic(page);
+	user_mem = kmap_atomic(page, KM_USER0);
 	if (is_partial_io(bvec))
 		memset(user_mem + bvec->bv_offset, 0, bvec->bv_len);
 	else
 		clear_page(user_mem);
-	kunmap_atomic(user_mem);
+	kunmap_atomic(user_mem, KM_USER0);
 
 	flush_dcache_page(page);
 }
@@ -406,7 +407,7 @@ static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
 		/* Use  a temporary buffer to decompress the page */
 		uncmem = kmalloc(PAGE_SIZE, GFP_NOIO);
 
-	user_mem = kmap_atomic(page);
+	user_mem = kmap_atomic(page, KM_USER0);
 	if (!is_partial_io(bvec))
 		uncmem = user_mem;
 
@@ -428,7 +429,7 @@ static int zram_bvec_read(struct zram *zram, struct bio_vec *bvec,
 	flush_dcache_page(page);
 	ret = 0;
 out_cleanup:
-	kunmap_atomic(user_mem);
+	kunmap_atomic(user_mem, KM_USER0);
 	if (is_partial_io(bvec))
 		kfree(uncmem);
 	return ret;
@@ -464,19 +465,19 @@ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index,
 
 	zstrm = zcomp_strm_find(zram->comp);
 	locked = true;
-	user_mem = kmap_atomic(page);
+	user_mem = kmap_atomic(page, KM_USER0);
 
 	if (is_partial_io(bvec)) {
 		memcpy(uncmem + offset, user_mem + bvec->bv_offset,
 		       bvec->bv_len);
-		kunmap_atomic(user_mem);
+		kunmap_atomic(user_mem, KM_USER0);
 		user_mem = NULL;
 	} else {
 		uncmem = user_mem;
 	}
 
 	if (page_zero_filled(uncmem)) {
-		kunmap_atomic(user_mem);
+		kunmap_atomic(user_mem, KM_USER0);
 		/* Free memory associated with this sector now. */
 		bit_spin_lock(ZRAM_ACCESS, &meta->table[index].value);
 		zram_free_page(zram, index);
@@ -490,7 +491,7 @@ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index,
 
 	ret = zcomp_compress(zram->comp, zstrm, uncmem, &clen);
 	if (!is_partial_io(bvec)) {
-		kunmap_atomic(user_mem);
+		kunmap_atomic(user_mem, KM_USER0);
 		user_mem = NULL;
 		uncmem = NULL;
 	}
@@ -516,9 +517,9 @@ static int zram_bvec_write(struct zram *zram, struct bio_vec *bvec, u32 index,
 	cmem = zs_map_object(meta->mem_pool, handle, ZS_MM_WO);
 
 	if ((clen == PAGE_SIZE) && !is_partial_io(bvec)) {
-		src = kmap_atomic(page);
+		src = kmap_atomic(page, KM_USER0);
 		copy_page(cmem, src);
-		kunmap_atomic(src);
+		kunmap_atomic(src, KM_USER0);
 	} else {
 		memcpy(cmem, src, clen);
 	}
