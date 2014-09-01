@@ -350,31 +350,31 @@ static struct s3cfb_lcd s6e63m0 = {
 };
 
 static struct s3cfb_lcd lvds = {
-        .width = 1024,
-        .height = 600,
-		.p_width = 154,
-		.p_height = 90,
-		.bpp = 24,
-        .freq = 60,
+	.width = 1024,
+	.height = 600,
+	.p_width = 154,
+	.p_height = 90,
+	.bpp = 24,
+	.freq = 67.2,
 
-        .timing = {
-                .h_fp = 142,    //50,	//179,	//.h_fp = 79,
-                .h_bp = 210,    //30,	//225,	//.h_bp = 200,
-                .h_sw = 50,     //20,	//40,
-                .v_fp = 10,     //6,	//10,
-                .v_fpe = 1,
-                .v_bp = 11,     //5,	//11,
-                .v_bpe = 1,
-                .v_sw = 10,     // 4,	//10,
+	.timing = {
+		.h_fp = 142,	//50,	//179,	//.h_fp = 79,
+		.h_bp = 210,	//30,	//225,	//.h_bp = 200,
+		.h_sw = 50,	//20,	//40,
+		.v_fp = 10,	//6,	//10,
+		.v_fpe = 1,
+		.v_bp = 11,	//5,	//11,
+		.v_bpe = 1,
+		.v_sw = 10,	// 4,	//10,
 
-        },
+	},
 
-        .polarity = {
-                .rise_vclk = 0,
-                .inv_hsync = 1,
-                .inv_vsync = 1,
-                .inv_vden = 0,
-        },
+	.polarity = {
+		.rise_vclk = 0,
+		.inv_hsync = 1,
+		.inv_vsync = 1,
+		.inv_vden = 0,
+	},
 };
 
 #define  S5PV210_VIDEO_SAMSUNG_MEMSIZE_FIMC0 		(8192 * SZ_1K)
