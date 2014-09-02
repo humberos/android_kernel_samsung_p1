@@ -5,7 +5,7 @@
 #include "tune_cmc623_value_FFS.h"
 #include "tune_cmc623_value_LCDPLS.h"
 
-mDNIe_data_type cmc623_Bypass[]= 
+mDNIe_data_type cmc623_Bypass[]=
 {
 	{0x0000,0x0000},	//BANK 0
 	{0x0001,0x0020},	//LABC
@@ -47,9 +47,9 @@ mDNIe_data_type cmc623_Bypass[]=
 	{END_SEQ,0x0000},
 };
 
-mDNIe_data_type cmc623_Bypass_CABC[]= 
+mDNIe_data_type cmc623_Bypass_CABC[]=
 {
-	//start 
+	//start
 	{0x0000,0x0000},	//BANK 0
 	{0x0001,0x0030},	//LABC CABC
 	{0x002c,0x0fff},	//DNR bypass {0x003C
@@ -132,7 +132,7 @@ mDNIe_data_type* cmc623_values[]=
 	cmc623_Bypass,
 	cmc623_Bypass,
 	cmc623_Bypass,
-	
+
 	cmc623_Bypass_CABC,
 	cmc623_Bypass_CABC,
 	cmc623_Bypass_CABC,
@@ -141,7 +141,7 @@ mDNIe_data_type* cmc623_values[]=
 	cmc623_Bypass_CABC,
 	cmc623_Bypass_CABC,
 	cmc623_Bypass_CABC,
-	
+
 	cmc623_Video_VA,
 	cmc623_Video_PLS,
 	cmc623_Video_VA50,
@@ -150,7 +150,7 @@ mDNIe_data_type* cmc623_values[]=
 	cmc623_Video_LCDPLS,
 	cmc623_Video_PLS,
 	cmc623_Video_PLS,
-	
+
 	cmc623_Video_CABC_VA,
 	cmc623_Video_CABC_PLS,
 	cmc623_Video_CABC_VA50,
@@ -159,7 +159,7 @@ mDNIe_data_type* cmc623_values[]=
 	cmc623_Video_CABC_LCDPLS,
 	cmc623_Video_CABC_PLS,
 	cmc623_Video_CABC_PLS,
-	
+
 	cmc623_Camera_VA,
 	cmc623_Camera_PLS,
 	cmc623_Camera_VA50,
@@ -168,7 +168,7 @@ mDNIe_data_type* cmc623_values[]=
 	cmc623_Camera_LCDPLS,
 	cmc623_Camera_PLS,
 	cmc623_Camera_PLS,
-	
+
 	cmc623_Camera_CABC_VA,
 	cmc623_Camera_CABC_PLS,
 	cmc623_Camera_CABC_VA50,
@@ -177,7 +177,7 @@ mDNIe_data_type* cmc623_values[]=
 	cmc623_Camera_CABC_LCDPLS,
 	cmc623_Camera_CABC_PLS,
 	cmc623_Camera_CABC_PLS,
-	
+
 	cmc623_UI_VA,
 	cmc623_UI_PLS,
 	cmc623_UI_VA50,
@@ -186,7 +186,7 @@ mDNIe_data_type* cmc623_values[]=
 	cmc623_UI_LCDPLS,
 	cmc623_UI_PLS,
 	cmc623_UI_PLS,
-	
+
 	cmc623_UI_CABC_VA,
 	cmc623_UI_CABC_PLS,
 	cmc623_UI_CABC_VA50,
@@ -195,7 +195,7 @@ mDNIe_data_type* cmc623_values[]=
 	cmc623_UI_CABC_LCDPLS,
 	cmc623_UI_CABC_PLS,
 	cmc623_UI_CABC_PLS,
-	
+
 	cmc623_VT_VA,
 	cmc623_VT_PLS,
 	cmc623_VT_VA50,
@@ -204,7 +204,7 @@ mDNIe_data_type* cmc623_values[]=
 	cmc623_VT_LCDPLS,
 	cmc623_VT_PLS,
 	cmc623_VT_PLS,
-	
+
 	cmc623_VT_CABC_VA,
 	cmc623_VT_CABC_PLS,
 	cmc623_VT_CABC_VA50,
@@ -213,7 +213,7 @@ mDNIe_data_type* cmc623_values[]=
 	cmc623_VT_CABC_LCDPLS,
 	cmc623_VT_CABC_PLS,
 	cmc623_VT_CABC_PLS,
-	
+
 	cmc623_DMB_VA,
 	cmc623_DMB_PLS,
 	cmc623_DMB_VA50,
@@ -222,7 +222,7 @@ mDNIe_data_type* cmc623_values[]=
 	cmc623_DMB_LCDPLS,
 	cmc623_DMB_PLS,
 	cmc623_DMB_PLS,
-	
+
 	cmc623_DMB_CABC_VA,
 	cmc623_DMB_CABC_PLS,
 	cmc623_DMB_CABC_VA50,
@@ -231,7 +231,7 @@ mDNIe_data_type* cmc623_values[]=
 	cmc623_DMB_CABC_LCDPLS,
 	cmc623_DMB_CABC_PLS,
 	cmc623_DMB_CABC_PLS,
-	
+
 	cmc623_GALLERY_VA,
 	cmc623_GALLERY_PLS,
 	cmc623_GALLERY_VA50,
@@ -240,7 +240,7 @@ mDNIe_data_type* cmc623_values[]=
 	cmc623_GALLERY_LCDPLS,
 	cmc623_GALLERY_PLS,
 	cmc623_GALLERY_PLS,
-	
+
 	cmc623_GALLERY_CABC_VA,
 	cmc623_GALLERY_CABC_PLS,
 	cmc623_GALLERY_CABC_VA50,
@@ -251,7 +251,7 @@ mDNIe_data_type* cmc623_values[]=
 	cmc623_GALLERY_CABC_PLS,
 };
 
-u16 OVE_values[] = 
+u16 OVE_values[] =
 {
 	0x0000,
 	0x0000,
@@ -431,7 +431,7 @@ mDNIe_data_type* cmc623_black_values[]=
 	cmc623_Black_Minus_4_LCDPLS,	cmc623_Black_Minus_4_CABC_LCDPLS,
 	cmc623_Black_Minus_4_PLS,		cmc623_Black_Minus_4_CABC_PLS,
 	cmc623_Black_Minus_4_PLS,		cmc623_Black_Minus_4_CABC_PLS,
-	
+
 	cmc623_Black_Minus_3_VA,		cmc623_Black_Minus_3_CABC_VA,
 	cmc623_Black_Minus_3_PLS,		cmc623_Black_Minus_3_CABC_PLS,
 	cmc623_Black_Minus_3_VA50,		cmc623_Black_Minus_3_CABC_VA50,
@@ -440,7 +440,7 @@ mDNIe_data_type* cmc623_black_values[]=
 	cmc623_Black_Minus_3_LCDPLS,	cmc623_Black_Minus_3_CABC_LCDPLS,
 	cmc623_Black_Minus_3_PLS,		cmc623_Black_Minus_3_CABC_PLS,
 	cmc623_Black_Minus_3_PLS,		cmc623_Black_Minus_3_CABC_PLS,
-	
+
 	cmc623_Black_Minus_2_VA, 		cmc623_Black_Minus_2_CABC_VA,
 	cmc623_Black_Minus_2_PLS,		cmc623_Black_Minus_2_CABC_PLS,
 	cmc623_Black_Minus_2_VA50,		cmc623_Black_Minus_2_CABC_VA50,
@@ -449,7 +449,7 @@ mDNIe_data_type* cmc623_black_values[]=
 	cmc623_Black_Minus_2_LCDPLS,	cmc623_Black_Minus_2_CABC_LCDPLS,
 	cmc623_Black_Minus_2_PLS,		cmc623_Black_Minus_2_CABC_PLS,
 	cmc623_Black_Minus_2_PLS,		cmc623_Black_Minus_2_CABC_PLS,
-	
+
 	cmc623_Black_Minus_1_VA,		cmc623_Black_Minus_1_CABC_VA,
 	cmc623_Black_Minus_1_PLS,		cmc623_Black_Minus_1_CABC_PLS,
 	cmc623_Black_Minus_1_VA50,		cmc623_Black_Minus_1_CABC_VA50,
@@ -458,7 +458,7 @@ mDNIe_data_type* cmc623_black_values[]=
 	cmc623_Black_Minus_1_LCDPLS,	cmc623_Black_Minus_1_CABC_LCDPLS,
 	cmc623_Black_Minus_1_PLS,		cmc623_Black_Minus_1_CABC_PLS,
 	cmc623_Black_Minus_1_PLS,		cmc623_Black_Minus_1_CABC_PLS,
-	
+
 	cmc623_Black_0_VA,			cmc623_Black_0_CABC_VA,
 	cmc623_Black_0_PLS,			cmc623_Black_0_CABC_PLS,
 	cmc623_Black_0_VA50,		cmc623_Black_0_CABC_VA50,
@@ -467,7 +467,7 @@ mDNIe_data_type* cmc623_black_values[]=
 	cmc623_Black_0_LCDPLS,		cmc623_Black_0_CABC_LCDPLS,
 	cmc623_Black_0_PLS,			cmc623_Black_0_CABC_PLS,
 	cmc623_Black_0_PLS,			cmc623_Black_0_CABC_PLS,
-	
+
 	cmc623_Black_Plus_1_VA,		cmc623_Black_Plus_1_CABC_VA,
 	cmc623_Black_Plus_1_PLS,		cmc623_Black_Plus_1_CABC_PLS,
 	cmc623_Black_Plus_1_VA50,		cmc623_Black_Plus_1_CABC_VA50,
@@ -476,7 +476,7 @@ mDNIe_data_type* cmc623_black_values[]=
 	cmc623_Black_Plus_1_LCDPLS,	cmc623_Black_Plus_1_CABC_LCDPLS,
 	cmc623_Black_Plus_1_PLS,		cmc623_Black_Plus_1_CABC_PLS,
 	cmc623_Black_Plus_1_PLS,		cmc623_Black_Plus_1_CABC_PLS,
-	
+
 	cmc623_Black_Plus_2_VA,		cmc623_Black_Plus_2_CABC_VA,
 	cmc623_Black_Plus_2_PLS,		cmc623_Black_Plus_2_CABC_PLS,
 	cmc623_Black_Plus_2_VA50,		cmc623_Black_Plus_2_CABC_VA50,
@@ -485,7 +485,7 @@ mDNIe_data_type* cmc623_black_values[]=
 	cmc623_Black_Plus_2_LCDPLS,	cmc623_Black_Plus_2_CABC_LCDPLS,
 	cmc623_Black_Plus_2_PLS,		cmc623_Black_Plus_2_CABC_PLS,
 	cmc623_Black_Plus_2_PLS,		cmc623_Black_Plus_2_CABC_PLS,
-	
+
 	cmc623_Black_Plus_3_VA,		cmc623_Black_Plus_3_CABC_VA,
 	cmc623_Black_Plus_3_PLS,		cmc623_Black_Plus_3_CABC_PLS,
 	cmc623_Black_Plus_3_VA50,		cmc623_Black_Plus_3_CABC_VA50,
@@ -494,7 +494,7 @@ mDNIe_data_type* cmc623_black_values[]=
 	cmc623_Black_Plus_3_LCDPLS,	cmc623_Black_Plus_3_CABC_LCDPLS,
 	cmc623_Black_Plus_3_PLS,		cmc623_Black_Plus_3_CABC_PLS,
 	cmc623_Black_Plus_3_PLS,		cmc623_Black_Plus_3_CABC_PLS,
-	
+
 	cmc623_Black_Plus_4_VA,		cmc623_Black_Plus_4_CABC_VA,
 	cmc623_Black_Plus_4_PLS,		cmc623_Black_Plus_4_CABC_PLS,
 	cmc623_Black_Plus_4_VA50,		cmc623_Black_Plus_4_CABC_VA50,
@@ -509,7 +509,7 @@ mDNIe_data_type cmc623_Color_Tempature_Normal_VA[]=
 {
 	{0x0000,0x0000},	//BANK 0
 	{0x005B,0x0032},	//MCM
-	
+
 	{END_SEQ,0x0000},
 };
 
@@ -517,7 +517,7 @@ mDNIe_data_type cmc623_Color_Tempature_Warm_VA[]=
 {
 	{0x0000,0x0000},	//BANK 0
 	{0x005B,0x0028},	//MCM 4000K
-	
+
 	{END_SEQ,0x0000},
 };
 
@@ -525,6 +525,6 @@ mDNIe_data_type cmc623_Color_Tempature_Cold_VA[]=
 {
 	{0x0000,0x0000},	//BANK 0
 	{0x005B,0x0064},	//MCM 10000K
-	
+
 	{END_SEQ,0x0000},
 };

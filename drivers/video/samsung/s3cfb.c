@@ -47,6 +47,7 @@
 #ifdef CONFIG_FB_S3C_MDNIE
 #include "s3cfb_mdnie.h"
 #endif
+
 #ifdef CONFIG_FB_S3C_CMC623
 #include "tune_cmc623.h"
 #endif
@@ -66,33 +67,6 @@ extern unsigned int HWREV;
 #if defined(CONFIG_MACH_S5PC110_P1) && defined(CONFIG_TARGET_LOCALE_KOR)
 static int current_band_for_pclk = 0;
 #endif
-/*
- *  Mark for GetLog (tkhwang)
- */
-
-struct struct_frame_buf_mark {
-	u32 special_mark_1;
-	u32 special_mark_2;
-	u32 special_mark_3;
-	u32 special_mark_4;
-	void *p_fb;
-	u32 resX;
-	u32 resY;
-	u32 bpp;    //color depth : 16 or 24
-	u32 frames; // frame buffer count : 2
-};
-
-static struct struct_frame_buf_mark  frame_buf_mark = {
-	.special_mark_1 = (('*' << 24) | ('^' << 16) | ('^' << 8) | ('*' << 0)),
-	.special_mark_2 = (('I' << 24) | ('n' << 16) | ('f' << 8) | ('o' << 0)),
-	.special_mark_3 = (('H' << 24) | ('e' << 16) | ('r' << 8) | ('e' << 0)),
-	.special_mark_4 = (('f' << 24) | ('b' << 16) | ('u' << 8) | ('f' << 0)),
-	.p_fb   = 0,
-	.resX   = 1024,
-	.resY   = 600,
-	.bpp    = 32,
-	.frames = 2
-};
 
 struct s3c_platform_fb *to_fb_plat(struct device *dev)
 {
@@ -112,46 +86,10 @@ static struct timer_list progress_timer;
 #define PROGRESS_BAR_WIDTH		4
 #define PROGRESS_BAR_HEIGHT		8
 
-static unsigned char anycall_progress_bar_left[] =
-{	
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00,
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00,
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0xf3, 0xc5, 0x00, 0x00, 0xf3, 0xc5, 0x00, 0x00,
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0xf3, 0xc5, 0x00, 0x00, 0xf3, 0xc5, 0x00, 0x00,
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0xf3, 0xc5, 0x00, 0x00, 0xf3, 0xc5, 0x00, 0x00,
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0xf3, 0xc5, 0x00, 0x00, 0xf3, 0xc5, 0x00, 0x00,
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00,
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00
-};
-
-static unsigned char anycall_progress_bar_right[] =
-{	
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00,
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00,
-	0xf3, 0xc5, 0x00, 0x00, 0xf3, 0xc5, 0x00, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 
-	0xf3, 0xc5, 0x00, 0x00, 0xf3, 0xc5, 0x00, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 
-	0xf3, 0xc5, 0x00, 0x00, 0xf3, 0xc5, 0x00, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 
-	0xf3, 0xc5, 0x00, 0x00, 0xf3, 0xc5, 0x00, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00,
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00
-};
-
 static unsigned char anycall_progress_bar_center[] =
 {
 	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0xf3, 0xc5, 0x00, 0x00, 0xf3, 0xc5, 0x00, 0x00,
 	0xf3, 0xc5, 0x00, 0x00, 0xf3, 0xc5, 0x00, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00
-};
-
-static unsigned char anycall_progress_bar[] = 
-{
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00,
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00,
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00,
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00,
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00,
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00,
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00,
-	0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00, 0x33, 0x33, 0x33, 0x00
 };
 
 static void s3cfb_start_progress(struct fb_info *fb);
@@ -233,6 +171,7 @@ static int s3cfb_draw_logo(struct fb_info *fb)
 #endif //defined(CONFIG_FB_S3C_LVDS) 
 
 #endif
+
 static irqreturn_t s3cfb_irq_frame(int irq, void *data)
 {
 	struct s3cfb_global *fbdev = (struct s3cfb_global *)data;
@@ -288,11 +227,8 @@ static int s3cfb_map_video_memory(struct fb_info *fb)
 	if (fb->screen_base)
 		return 0;
 
-//#if defined(CONFIG_FB_S3C_LVDS)
-//	fix->smem_start = pdata->pmem_start;
-//	fb->screen_base = ioremap_wc(fix->smem_start, pdata->pmem_size);
-//#else
-	if (pdata && pdata->pmem_start && (pdata->pmem_size >= fix->smem_len)) {
+	if (pdata && pdata->pmem_start &&
+			(pdata->pmem_size >= fix->smem_len)) {
 		fix->smem_start = pdata->pmem_start;
 		fb->screen_base = ioremap_wc(fix->smem_start, pdata->pmem_size);
 	} else
@@ -300,7 +236,6 @@ static int s3cfb_map_video_memory(struct fb_info *fb)
 						 PAGE_ALIGN(fix->smem_len),
 						 (unsigned int *)
 						 &fix->smem_start, GFP_KERNEL);
-//#endif
 
 	if (!fb->screen_base)
 		return -ENOMEM;
@@ -316,35 +251,6 @@ static int s3cfb_map_video_memory(struct fb_info *fb)
 	return 0;
 }
 
-static int s3cfb_map_default_video_memory(struct fb_info *fb)
-{
-#if defined(CONFIG_FB_S3C_VIRTUAL)
-	struct fb_fix_screeninfo *fix = &fb->fix;
-	struct s3cfb_window *win = fb->par;
-	struct s3c_platform_fb *pdata = to_fb_plat(fbdev->dev);
-
-	if (win->owner == DMA_MEM_OTHER)
-		return 0;
-
-	fix->smem_start = pdata->pmem_start;
-	fb->screen_base = ioremap_wc(fix->smem_start, pdata->pmem_size);
-
-	if (!fb->screen_base)
-		return -ENOMEM;
-	else
-		dev_info(fbdev->dev, "[fb%d] dma: 0x%08x, cpu: 0x%08x, "
-			"size: 0x%08x\n", win->id,
-			(unsigned int)fix->smem_start,
-			(unsigned int)fb->screen_base, fix->smem_len);
-
-	memset(fb->screen_base, 0, fix->smem_len);
-	win->owner = DMA_MEM_FIMD;
-#else
-	s3cfb_map_video_memory(fb);
-#endif
-	return 0;
-}
-
 static int s3cfb_unmap_video_memory(struct fb_info *fb)
 {
 	struct s3cfb_global *fbdev =
@@ -355,16 +261,12 @@ static int s3cfb_unmap_video_memory(struct fb_info *fb)
 
 	if (fix->smem_start) {
 		if (win->owner == DMA_MEM_FIMD) {
-//#if defined(CONFIG_FB_S3C_LVDS)
-//			iounmap(fb->screen_base);
-//#else		
 			if (pdata && pdata->pmem_start &&
 					(pdata->pmem_size >= fix->smem_len))
 				iounmap(fb->screen_base);
 			else
 				dma_free_writecombine(fbdev->dev, fix->smem_len,
 					      fb->screen_base, fix->smem_start);
-//#endif						  
 		}
 		fix->smem_start = 0;
 		fix->smem_len = 0;
@@ -378,9 +280,9 @@ static int s3cfb_unmap_default_video_memory(struct fb_info *fb)
 {
 	struct s3cfb_global *fbdev =
 		platform_get_drvdata(to_platform_device(fb->device));
-	struct s3c_platform_fb *pdata = to_fb_plat(fbdev->dev);
 	struct fb_fix_screeninfo *fix = &fb->fix;
 	struct s3cfb_window *win = fb->par;
+	struct s3c_platform_fb *pdata = to_fb_plat(fbdev->dev);
 
 	if (fix->smem_start) {
 #if defined(CONFIG_FB_S3C_VIRTUAL)
@@ -493,11 +395,6 @@ static int s3cfb_check_var(struct fb_var_screeninfo *var, struct fb_info *fb)
 	if (var->xres_virtual < var->xres)
 		var->xres_virtual = var->xres;
 
-#if 0
-	if (var->yres_virtual > var->yres * CONFIG_FB_S3C_NR_BUFFERS)
-		var->yres_virtual = var->yres * CONFIG_FB_S3C_NR_BUFFERS;
-#endif
-
 	var->xoffset = 0;
 
 	if (var->yoffset + var->yres > var->yres_virtual)
@@ -591,6 +488,7 @@ static int s3cfb_blank(int blank_mode, struct fb_info *fb)
 
 	return 0;
 }
+
 static int s3cfb_pan_display(struct fb_var_screeninfo *var, struct fb_info *fb)
 {
 	struct fb_fix_screeninfo *fix = &fb->fix;
@@ -1053,7 +951,7 @@ static DEVICE_ATTR(win_power, S_IRUGO | S_IWUSR,
 
 #if defined(CONFIG_MACH_S5PC110_P1)
 static void s3cfb_update_framebuffer(struct fb_info *fb,
-									int x, int y, void *buffer, 
+									int x, int y, void *buffer,
 									int src_width, int src_height)
 {
 	struct s3c_platform_fb *pdata = to_fb_plat(fbdev->dev);
@@ -1061,7 +959,7 @@ static void s3cfb_update_framebuffer(struct fb_info *fb,
 	struct fb_var_screeninfo *var = &fb->var;
 	int row;
 	int bytes_per_pixel = (var->bits_per_pixel / 8 );
-	
+
 	unsigned char *pSrc = buffer;
 	unsigned char *pDst = fbdev->fb[pdata->default_win]->screen_base;
 
@@ -1069,12 +967,12 @@ static void s3cfb_update_framebuffer(struct fb_info *fb,
 	{
 		// err("invalid destination coordinate or source size (%d, %d) (%d %d) \n", x, y, src_width, src_height);
 		return;
-	}	
+	}
 
-	pDst += y * fix->line_length + x * bytes_per_pixel;	
-    
-	for (row = 0; row < src_width ; row++)	
-	{		
+	pDst += y * fix->line_length + x * bytes_per_pixel;
+
+	for (row = 0; row < src_width ; row++)
+	{
 		memcpy(pDst, pSrc, src_height * bytes_per_pixel);
 		pSrc += src_height * bytes_per_pixel;
 		pDst += fix->line_length;
@@ -1084,77 +982,46 @@ static void s3cfb_update_framebuffer(struct fb_info *fb,
 
 #ifdef DISPLAY_BOOT_PROGRESS
 static void s3cfb_start_progress(struct fb_info *fb)
-{	
-	// int y_pos;
+{
 	init_timer(&progress_timer);
 
 	progress_timer.expires  = (get_jiffies_64() + (HZ/20));
 	progress_timer.data     = (long)fb;
 	progress_timer.function = progress_timer_handler;
 	progress_pos = PROGRESS_BAR_LEFT_POS;
-	
-    #if 0
-	// draw progress background.
-	for (y_pos = PROGRESS_BAR_LEFT_POS ; y_pos <= PROGRESS_BAR_RIGHT_POS ; y_pos += PROGRESS_BAR_HEIGHT)
-	{
-		s3cfb_update_framebuffer(fb,
-			PROGRESS_BAR_START_X,
-			y_pos,
-			(void*)anycall_progress_bar,					
-			PROGRESS_BAR_WIDTH,
-			PROGRESS_BAR_HEIGHT);
-	}
-	s3cfb_update_framebuffer(fb,PROGRESS_BAR_START_X,PROGRESS_BAR_LEFT_POS,	
-                                (void*)anycall_progress_bar_left,PROGRESS_BAR_HEIGHT, PROGRESS_BAR_WIDTH);
-	
-	progress_pos += PROGRESS_BAR_HEIGHT;	
-	
-	s3cfb_update_framebuffer(fb, PROGRESS_BAR_START_X, progress_pos, 
-                                (void*)anycall_progress_bar_right,  PROGRESS_BAR_HEIGHT, PROGRESS_BAR_WIDTH);
-    #endif
-	
+
 	add_timer(&progress_timer);
 
 	progress_flag = 1;
-
 }
 
 static void s3cfb_stop_progress(void)
-{	
-	if (progress_flag == 0)		
-		return;	
-	del_timer(&progress_timer);	
+{
+	if (progress_flag == 0)
+		return;
+	del_timer(&progress_timer);
 	progress_flag = 0;
 }
 
 static void progress_timer_handler(unsigned long data)
-{	
-	int i;	
-	for(i = 0; i < 4; i++)	
-	{		
+{
+	int i;
+	for(i = 0; i < 4; i++)
+	{
 		s3cfb_update_framebuffer((struct fb_info *)data,
 			PROGRESS_BAR_START_X,
 			progress_pos++,
-			(void*)anycall_progress_bar_center,					
+			(void*)anycall_progress_bar_center,
 			1,
-			PROGRESS_BAR_HEIGHT);	
-	}	
-	
-#if 0
-	s3cfb_update_framebuffer((struct fb_info *)data,		
-		PROGRESS_BAR_START_X,
-		progress_pos,
-		(void*)anycall_progress_bar_right,		
-		PROGRESS_BAR_WIDTH,
-		PROGRESS_BAR_HEIGHT);    
-#endif
-	
-	if (progress_pos + PROGRESS_BAR_HEIGHT >= PROGRESS_BAR_RIGHT_POS )    
-	{        
-		s3cfb_stop_progress();    
-	}    
-	else    
-	{        
+			PROGRESS_BAR_HEIGHT);
+	}
+
+	if (progress_pos + PROGRESS_BAR_HEIGHT >= PROGRESS_BAR_RIGHT_POS )
+	{
+		s3cfb_stop_progress();
+	}
+	else
+	{
 		progress_timer.expires = (get_jiffies_64() + (HZ/20));
 		progress_timer.function = progress_timer_handler;
 		add_timer(&progress_timer);
@@ -1331,21 +1198,20 @@ static int __devinit s3cfb_probe(struct platform_device *pdev)
 		goto err_register;
 	}
 
-	frame_buf_mark.p_fb = (void*)fbdev->fb[pdata->default_win]->fix.smem_start;
-	frame_buf_mark.bpp = fbdev->fb[pdata->default_win]->var.bits_per_pixel;
-
 	s3cfb_set_clock(fbdev);
 #ifdef CONFIG_FB_S3C_MDNIE
 	mDNIe_Mode_Set();
-#endif 
+#endif
 	s3cfb_set_window(fbdev, pdata->default_win, 1);
+
+	s3cfb_set_alpha_value_width(fbdev, pdata->default_win);
 
 #if defined(CONFIG_MACH_S5PC110_P1) && defined(CONFIG_FB_S3C_MDNIE) && defined(__NO_BOOT_INIT_MDNIE__)
 	// it doesn't need this if bootloader enable mdnie
 	s3cfb_ielcd_enable(fbdev, 1);
 	s3c_mdnie_init_global(fbdev);
 	s3c_mdnie_start(fbdev);
-#endif 
+#endif
 
 #ifndef BOOTLOADER_INIT_LCD
 	s3cfb_display_on(fbdev);
@@ -1492,21 +1358,21 @@ void s3cfb_early_suspend(struct early_suspend *h)
 	lms700_powerdown();
 #endif
 
-	#ifdef CONFIG_FB_S3C_CMC623
+#ifdef CONFIG_FB_S3C_CMC623
 	tune_cmc623_suspend();
-	#endif
+#endif
 
-	#ifdef CONFIG_FB_S3C_MDNIE
+#ifdef CONFIG_FB_S3C_MDNIE
 	writel(0,fbdev->regs + 0x27c);
-	msleep(20);  // mdelay->msleep
+	msleep(20);
 	writel(0x2, S5P_MDNIE_SEL);
 	s3c_mdnie_stop();
-	#endif
+#endif
 
 	s3cfb_display_off(fbdev);
-	#ifdef CONFIG_FB_S3C_MDNIE
+#ifdef CONFIG_FB_S3C_MDNIE
 	s3c_mdnie_off();
-	#endif 
+#endif
 	clk_disable(fbdev->clock);
 #if defined(CONFIG_FB_S3C_TL2796)
 	lcd_cfg_gpio_early_suspend();
@@ -1553,23 +1419,23 @@ void s3cfb_late_resume(struct early_suspend *h)
 #endif
 	s3cfb_init_global(fbdev);
 	s3cfb_set_clock(fbdev);
-
 #ifdef CONFIG_FB_S3C_MDNIE
 #if !(defined(CONFIG_MACH_S5PC110_P1) && defined(CONFIG_TARGET_LOCALE_KOR))
 	s3c_mdnie_init_global(fbdev);
 	s3c_mdnie_start(fbdev);
-#endif 
-#endif 
+#endif
+#endif
 
-	#ifdef CONFIG_FB_S3C_CMC623
+#ifdef CONFIG_FB_S3C_CMC623
 	tune_cmc623_pre_resume();
-	#endif
+#endif
+	s3cfb_set_alpha_value_width(fbdev, pdata->default_win);
 
 	s3cfb_display_on(fbdev);
 
-	#ifdef CONFIG_FB_S3C_CMC623
+#ifdef CONFIG_FB_S3C_CMC623
 	tune_cmc623_resume();
-	#endif
+#endif
 
 #if defined (CONFIG_FB_S3C_LVDS)
 	lms700_powerup();

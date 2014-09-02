@@ -16,8 +16,8 @@
 
 
 
-#define S3C_MDNIE_PHY_BASE    				0xFAE00000 
-#define S3C_MDNIE_MAP_SIZE    				0x00001000 
+#define S3C_MDNIE_PHY_BASE    				0xFAE00000
+#define S3C_MDNIE_MAP_SIZE    				0x00001000
 
 
 #define S3C_MDNIE_rR1					0x0084
@@ -218,7 +218,7 @@
 #define S3C_MDNIE_TRANSFUNL_9(n)			(((n)&0x7F)<<8)
 
 //R72
-#define S3C_MDNIE_QUADRANT_OFF				(0<<8)	
+#define S3C_MDNIE_QUADRANT_OFF				(0<<8)
 #define S3C_MDNIE_QUADRAND_ON				(1<<8)
 #define S3C_MDNIE_COLOR_TEMP_DEST(n)			((((n)&0xFF)<<0)
 //R73

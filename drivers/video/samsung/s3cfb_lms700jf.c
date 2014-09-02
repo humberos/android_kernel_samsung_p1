@@ -86,7 +86,7 @@ extern int s3c_adc_get_adc_data(int channel);
 #define SEC_LCD_ADC_CHANNEL 2
 
 /*********** for debug **********************************************************/
-#if 0 
+#if 0
 #define gprintk(fmt, x... ) printk( "%s(%d): " fmt, __FUNCTION__ ,__LINE__, ## x)
 #else
 #define gprintk(x...) do { } while (0)
@@ -135,7 +135,7 @@ struct lms600_state_type{
 	unsigned int powered_up;
 };
 
-static struct lms600_state_type lms700_state = { 
+static struct lms600_state_type lms700_state = {
 	.powered_up = TRUE,
 };
 
@@ -162,14 +162,14 @@ void tl2796_ldi_init(void)
 
 	SetLDIEnabledFlag(1);
 	printk(KERN_DEBUG "LDI enable ok\n");
-	dev_dbg(lcd.lcd_dev,"%s::%d -> ldi initialized\n",__func__,__LINE__);	
+	dev_dbg(lcd.lcd_dev,"%s::%d -> ldi initialized\n",__func__,__LINE__);
 }
 #endif
 
 void lms700_powerup(void)
 {
 	int ret;
-	
+
 	printk(KERN_INFO "%s(%d)\n", __func__, lms700_state.powered_up);
 
 	mutex_lock(&lms700_power_lock);
@@ -177,10 +177,11 @@ void lms700_powerup(void)
 	if(!lms700_state.powered_up)
 		{
 		// ldo enable
-		ret = regulator_enable(regulator_lvds33);
-		if(ret<0)
-			printk(KERN_ERR "%s: is_enabled() failed for regulator_lvds33: %d\n", __func__, ret);
-
+		if (!regulator_is_enabled(regulator_lvds33)) {
+			ret = regulator_enable(regulator_lvds33);
+			if(ret < 0)
+				printk(KERN_ERR "%s: is_enabled() failed for regulator_lvds33: %d\n", __func__, ret);
+		}
 	//#if !defined(CONFIG_TARGET_LOCALE_LTN)  // CYS_ 2010.07.02 for Camera Preview
 	//	if(HWREV <= 10)		// MIDAS[2010.09.14] MLCD_ON control below rev0.4 (EUR) or rev0.8(KOR)
 	//		gpio_set_value(GPIO_MLCD_ON, 1);
@@ -209,21 +210,20 @@ void lms700_powerup(void)
 		}
 
 	mutex_unlock(&lms700_power_lock);
-	
-	dev_dbg(&lcd.lcd_dev->dev,"%s::%d\n",__func__,__LINE__);	
+
+	dev_dbg(&lcd.lcd_dev->dev,"%s::%d\n",__func__,__LINE__);
 }
 EXPORT_SYMBOL(lms700_powerup);
 
 void lms700_powerdown(void)
 {
 	int ret;
-	
+
 	printk(KERN_INFO "%s(%d)\n", __func__, lms700_state.powered_up);
 
 	mutex_lock(&lms700_power_lock);
 
-	if(lms700_state.powered_up)
-		{
+	if (lms700_state.powered_up) {
 		// Disable LDOs
 #if defined (CONFIG_TARGET_LOCALE_EUR) || defined (CONFIG_TARGET_LOCALE_HKTW) || defined (CONFIG_TARGET_LOCALE_HKTW_FET) || defined (CONFIG_TARGET_LOCALE_VZW) || defined (CONFIG_TARGET_LOCALE_USAGSM)
 		if(HWREV >= 13)		// above rev0.7 (EUR)
@@ -234,7 +234,7 @@ void lms700_powerdown(void)
 			gpio_set_value(GPIO_LVDS_SHDN, 0);
 			}
 		msleep(20);
-		
+
 		gpio_set_value(GPIO_LCD_LDO_EN, 0);
 		msleep(150);
 
@@ -243,16 +243,18 @@ void lms700_powerdown(void)
 	//		gpio_set_value(GPIO_MLCD_ON, 0);
 	//#endif
 
-		ret = regulator_disable(regulator_lvds33);
-		if(ret<0)
-			printk(KERN_ERR "%s: is_disabled() failed for regulator_lvds33: %d\n", __func__, ret);
-
-		lms700_state.powered_up = FALSE;
+		if (regulator_is_enabled(regulator_lvds33)) {
+			ret = regulator_disable(regulator_lvds33);
+			if (ret < 0)
+				printk(KERN_ERR "%s: is_disabled() failed for regulator_lvds33: %d\n", __func__, ret);
 		}
 
+		lms700_state.powered_up = FALSE;
+	}
+
 	mutex_unlock(&lms700_power_lock);
-	
-	dev_dbg(&lcd.lcd_dev->dev,"%s::%d\n",__func__,__LINE__);	
+
+	dev_dbg(&lcd.lcd_dev->dev,"%s::%d\n",__func__,__LINE__);
 }
 EXPORT_SYMBOL(lms700_powerdown);
 
@@ -268,7 +270,7 @@ void tl2796_ldi_disable(void)
 
 	SetLDIEnabledFlag(0);
 	printk(KERN_DEBUG "LDI disable ok\n");
-	dev_dbg(&lcd.lcd_dev->dev,"%s::%d -> ldi disabled\n",__func__,__LINE__);	
+	dev_dbg(&lcd.lcd_dev->dev,"%s::%d -> ldi disabled\n",__func__,__LINE__);
 }
 
 void s3cfb_set_lcd_info(struct s3cfb_global *ctrl)
@@ -283,7 +285,7 @@ int s5p_lcd_set_power(struct lcd_device *ld, int power)
 {
 	// Originally, an argument power means LCD panel power status (0: full on, 1..3: controller power on, flat panel power off, 4: full off)
 	// In this point of view, this function is wrong obviously.
-	// But we still use this implementation for compatibility 
+	// But we still use this implementation for compatibility
 	printk("s5p_lcd_set_power is called: %d", power);
 	if(power)
 	{
@@ -303,7 +305,7 @@ EXPORT_SYMBOL(s5p_lcd_set_power);
 static int s5p_lcd_check_fb(struct lcd_device *lcddev, struct fb_info *fi)
 {
 	// it doesn't use fb notifier
-	return 0;	
+	return 0;
 }
 
 static struct lcd_ops s5p_lcd_ops = {
@@ -312,7 +314,7 @@ static struct lcd_ops s5p_lcd_ops = {
 };
 
 
-#ifdef ACL_ENABLE 
+#ifdef ACL_ENABLE
 static ssize_t cabcset_file_cmd_show(struct device *dev, struct device_attribute *attr, char *buf)
 {
 	printk(KERN_INFO "%s \n", __func__);
@@ -331,7 +333,7 @@ static ssize_t cabcset_file_cmd_store(struct device *dev, struct device_attribut
 	cmc623_cabc_enable(enable);
 	cabc_enable = enable;
 
-	
+
 #if 0
 	if(IsLDIEnabled()==0)
 	{
@@ -340,12 +342,12 @@ static ssize_t cabcset_file_cmd_store(struct device *dev, struct device_attribut
 	}
 
 	if(value==1 && acl_enable == 0)
-	{		
+	{
 		acl_enable = value;
-		
+
 		s6e63m0_panel_send_sequence(acl_cutoff_init);
 		msleep(20);
-	
+
 		if (current_gamma_value ==1)
 		{
 			s6e63m0_panel_send_sequence(ACL_cutoff_set[0]); //set 0% ACL
@@ -386,7 +388,7 @@ static ssize_t cabcset_file_cmd_store(struct device *dev, struct device_attribut
 	else if(value==0 && acl_enable == 1)
 	{
 		acl_enable = value;
-		
+
 		//ACL Off
 		s6e63m0_panel_send_sequence(ACL_cutoff_set[0]); //ACL OFF
 		//printk(" ACL_cutoff_set Percentage : 0!!\n");
@@ -407,7 +409,7 @@ static DEVICE_ATTR(cabcset_file_cmd,0664, cabcset_file_cmd_show, cabcset_file_cm
 static void lms700_shutdown(struct platform_device *dev)
 {
 	//printk("%s\n", __func__);
-	
+
 	// Disable LDOs
 #if defined(CONFIG_MACH_P1) && defined(CONFIG_TARGET_LOCALE_EUR) || defined(CONFIG_TARGET_LOCALE_HKTW) || defined (CONFIG_TARGET_LOCALE_HKTW_FET) || defined(CONFIG_TARGET_LOCALE_VZW) || defined (CONFIG_TARGET_LOCALE_USAGSM)
 	if(HWREV >= 13)		// above rev0.7
@@ -431,7 +433,7 @@ static ssize_t lightsensor_file_state_store(struct device *dev,
 	char *endp;
 	int enable = simple_strtoul(buf, &endp, 0);
 	printk(KERN_NOTICE "%s:%d\n", __func__, enable);
-	
+
 	autobrightness_enable = enable;
 	cmc623_autobrightness_enable(enable);
 
@@ -560,7 +562,7 @@ static int __init lms700_probe(struct platform_device *pdev)
 
 	if (device_create_file(switch_gammaset_dev, &dev_attr_gammaset_file_cmd) < 0)
 		pr_err("Failed to create device file(%s)!\n", dev_attr_gammaset_file_cmd.attr.name);
-#endif	
+#endif
 #endif
 
 	cabc_class = class_create(THIS_MODULE, "cabcset");
@@ -612,8 +614,8 @@ static int __init lms700_probe(struct platform_device *pdev)
 //		lcd_type = LCD_TYPE_VA;
 //		lcd_adc = 0;
 //	}
-//#elif defined(CONFIG_TARGET_LOCALE_VZW) 
-//	if(HWREV >= 7)		
+//#elif defined(CONFIG_TARGET_LOCALE_VZW)
+//	if(HWREV >= 7)
 //	{
 //		lcd_type = LCD_TYPE_PLS;
 //		lcd_adc = s3c_adc_get_adc_data(SEC_LCD_ADC_CHANNEL);
@@ -626,8 +628,8 @@ static int __init lms700_probe(struct platform_device *pdev)
 //	}
 #if defined(CONFIG_TARGET_LOCALE_KOR)
 	if(HWREV >= 14)		// above rev1.2 (KOR)
-#elif defined(CONFIG_TARGET_LOCALE_VZW) 
-	if(HWREV >= 7)		
+#elif defined(CONFIG_TARGET_LOCALE_VZW)
+	if(HWREV >= 7)
 #else
 // EUR and HKTW and HKTW_FET and USAGSM and etc
 	if(HWREV >= 16)		// above rev1.0 (EUR)
@@ -666,7 +668,7 @@ static int __init lms700_probe(struct platform_device *pdev)
 		else
 		{
 			lcd_type = LCD_TYPE_VA;
-		}		
+		}
 	}
 	else
 	{
@@ -740,7 +742,7 @@ static int __init lms700_probe(struct platform_device *pdev)
 	else
 	{
 		lcd_vendor_by_adc = LCD_TYPE_VA;
-	}		
+	}
 
 	switch(lcd_vendor_by_adc)
 	{
@@ -772,12 +774,12 @@ static int __init lms700_probe(struct platform_device *pdev)
 		pr_info("LCD vendor: none\n");
 		break;
 	}
-	
+
 	return ret;
 }
 
-#if CONFIG_PM 
-int lms700_suspend(struct platform_device *pdev, pm_message_t state)
+#if CONFIG_PM
+static int lms700_suspend(struct device *dev)
 {
 	pr_info("%s::%d->lms700 suspend\n",__func__,0);
 	lms700_powerdown();
@@ -785,30 +787,31 @@ int lms700_suspend(struct platform_device *pdev, pm_message_t state)
 	return 0;
 }
 
-int lms700_resume(struct platform_device *pdev, pm_message_t state)
+static int lms700_resume(struct device *dev)
 {
 	pr_info("%s::%d ->lms700 resume\n",__func__,0);
 	lms700_powerup();
 
 	return 0;
 }
+
+static const struct dev_pm_ops lms700_pm_ops = {
+	.suspend = lms700_suspend,
+	.resume = lms700_resume,
+};
 #endif
 
 static struct platform_driver lms700_driver = {
 	.driver = {
-		.name	= "lms700",
-		.owner	= THIS_MODULE,
+		.name = "lms700",
+		.owner = THIS_MODULE,
+#if CONFIG_PM
+		.pm = &lms700_pm_ops,
+#endif
 	},
 	.probe		= lms700_probe,
 	.remove		= __exit_p(lms700_remove),
 	.shutdown	= lms700_shutdown,
-//#ifdef CONFIG_PM
-//	.suspend	= lms700_suspend,
-//	.resume		= lms700_resume,
-//#else
-	.suspend	= NULL,
-	.resume		= NULL,
-//#endif
 };
 
 static int __init lms700_init(void)
